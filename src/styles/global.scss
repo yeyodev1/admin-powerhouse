@@ -1,0 +1,37 @@
+html, body {
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-montserrat);
+}
+
+:root {
+  --bg: #283645;
+  --bg-alt: #1a1d52;
+  --surface: #1e2260;
+  --surface-2: #232770;
+  --text: #FFFFFF;
+  --text-2: rgba(255, 255, 255, 0.75);
+  --text-3: rgba(255, 255, 255, 0.50);
+  --border: rgba(33, 188, 251, 0.12);
+  --border-medium: rgba(33, 188, 251, 0.22);
+  --accent: #18e7f0;
+  --primary: #21bcfb;
+  --blue: #1278f3;
+  --blue-light: #3a92ff;
+  --cyan: #21bcfb;
+  --teal: #18e7f0;
+  --font-montserrat: 'Montserrat', sans-serif;
+  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.20);
+  --shadow-sm: 0 2px 14px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 32px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
