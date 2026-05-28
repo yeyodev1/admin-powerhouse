@@ -22,6 +22,11 @@ export class PersonService extends APIBase {
     return response.data
   }
 
+  async getPersonById(id: string) {
+    const response = await this.get<any>(`/persons/${id}`)
+    return response.data
+  }
+
   async createPerson(data: PersonData) {
     const response = await this.post<any>('/persons', data)
     return response.data
@@ -44,6 +49,16 @@ export class PersonService extends APIBase {
 
   async deleteFile(personId: string, fileId: string) {
     const response = await this.delete<any>(`/persons/${personId}/files/${fileId}`)
+    return response.data
+  }
+
+  async analyzePerson(id: string, payload: { patientContext: string; files: any[] }) {
+    const response = await this.post<{ message: string; result: string }>(`/persons/${id}/analyze`, payload)
+    return response.data
+  }
+
+  async generateReport(id: string, payload: { params: any; openAiResult: string }) {
+    const response = await this.post<{ message: string; result: string }>(`/persons/${id}/report`, payload)
     return response.data
   }
 }

@@ -66,7 +66,7 @@ function openPersonEdit(p: any) { personToEdit.value = p; personModalOpen.value 
 
 async function submitPerson(data: PersonData) {
   try {
-    if (data._id) await personService.updatePerson(data._id, data)
+    if ((data as any)._id) await personService.updatePerson((data as any)._id, data)
     else await personService.createPerson(data)
     personModalOpen.value = false
     await loadPersons()
@@ -128,7 +128,7 @@ function logout() {
 function decodeToken(token: string) {
   try {
     const parts = token.split('.')
-    return JSON.parse(atob(parts[1]))
+    return JSON.parse(atob(parts[1] || ''))
   } catch { return null }
 }
 

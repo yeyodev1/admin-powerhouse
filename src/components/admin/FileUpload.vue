@@ -11,7 +11,6 @@ const emit = defineEmits<{
   deleted: [fileId: string]
 }>()
 
-const uploading = ref(false)
 const dragover = ref(false)
 const error = ref('')
 

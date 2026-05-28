@@ -5,6 +5,7 @@ import { authService } from '@/services/auth.service'
 import { personService } from '@/services/person.service'
 import { useUserStore } from '@/stores/user'
 import FileUpload from '@/components/admin/FileUpload.vue'
+import PrecisionAnalysis from '@/components/admin/PrecisionAnalysis.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -26,6 +27,12 @@ const error = ref('')
 
 const newPersonForm = ref({ name: '', email: '', phone: '' })
 
+// ── Tab Management ──
+const activeTab = ref('profile')
+const initialReportContent = ref('')
+const initialReportName = ref('')
+const initialSelectedFiles = ref<any[]>([])
+
 // ── Watchers ──────────────────────────────────────────
 watch(searchQuery, (newVal) => {
   isSearching.value = true
@@ -34,6 +41,12 @@ watch(searchQuery, (newVal) => {
     debouncedSearchQuery.value = newVal
     isSearching.value = false
   }, 300)
+})
+
+watch(() => selectedPerson.value?._id, () => {
+  activeTab.value = 'profile'
+  initialReportContent.value = ''
+  initialReportName.value = ''
 })
 
 // ── Computed ──────────────────────────────────────────
@@ -85,9 +98,7 @@ async function loadPersons() {
     // They can use the new UI filters to narrow down the list.
     persons.value = all
     console.log(' Persons loaded:', persons.value.length)
-    if (!selectedPerson.value && persons.value.length > 0) {
-      selectPerson(persons.value[0])
-    }
+    // Removed auto-selection so nobody is selected by default on load
   } catch (e: any) {
     error.value = e?.message || 'Error al cargar personas'
   } finally {
@@ -96,8 +107,15 @@ async function loadPersons() {
 }
 
 // ── Select person ────────────────────────────────────
-function selectPerson(person: any) {
-  selectedPerson.value = person
+async function selectPerson(person: any) {
+  error.value = ''
+  try {
+    // Obtain full, fresh details of the user when clicked
+    const freshPerson = await personService.getPersonById(person._id)
+    selectedPerson.value = freshPerson
+  } catch (e: any) {
+    error.value = e?.message || 'Error al obtener los detalles de la persona'
+  }
 }
 
 // ── Create person ────────────────────────────────────
@@ -196,12 +214,41 @@ function handleLogout() {
 }
 
 // ── Utils ─────────────────────────────────────────────
+async function openSavedReport(file: any) {
+  try {
+    const response = await fetch(file.url)
+    const text = await response.text()
+    activeTab.value = 'analysis'
+    initialReportContent.value = text
+    initialReportName.value = file.filename
+  } catch (e: any) {
+    error.value = 'Error al abrir el reporte guardado: ' + e.message
+  }
+}
+
 function formatDate(date: string) {
   if (!date) return '—'
   return new Date(date).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
+function startAnalysisForFile(file: any) {
+  initialSelectedFiles.value = [file]
+  activeTab.value = 'analysis'
+}
+
+function startAnalysisAll() {
+  if (selectedPerson.value?.medicalFiles) {
+    initialSelectedFiles.value = selectedPerson.value.medicalFiles.filter((f: any) =>
+      !(f.type === 'text/markdown' || f.filename.endsWith('.md'))
+    )
+  } else {
+    initialSelectedFiles.value = []
+  }
+  activeTab.value = 'analysis'
+}
+
 function getFileIcon(type: string) {
+  if (type.includes('markdown') || type.includes('md') || type.includes('text/markdown')) return 'fa-file-medical'
   if (type.includes('pdf')) return 'fa-file-pdf'
   if (type.includes('image')) return 'fa-image'
   return 'fa-file'
@@ -380,113 +427,178 @@ onMounted(async () => {
               </button>
             </div>
           </div>
+          <!-- Tabs Navigation -->
+          <div class="person-tabs">
+            <button
+              class="person-tab"
+              :class="{ 'person-tab--active': activeTab === 'profile' }"
+              @click="activeTab = 'profile'"
+            >
+              <i class="fa-solid fa-address-card"></i>
+              Ficha Médica
+            </button>
+            <button
+              class="person-tab"
+              :class="{ 'person-tab--active': activeTab === 'analysis' }"
+              @click="activeTab = 'analysis'"
+            >
+              <i class="fa-solid fa-vial-medical"></i>
+              Análisis de Precisión
+            </button>
+          </div>
 
-          <!-- Profile view -->
-          <div v-if="!isEditingProfile" class="profile-fields">
-            <div class="profile-field">
-              <span class="profile-field__label"><i class="fa-solid fa-user"></i> Nombre</span>
-              <span class="profile-field__value">{{ selectedPerson.name || '—' }}</span>
+          <div v-if="activeTab === 'profile'" class="tab-content-wrapper animate-fade-in">
+            <!-- Profile view -->
+            <div v-if="!isEditingProfile" class="profile-fields">
+              <div class="profile-field">
+                <span class="profile-field__label"><i class="fa-solid fa-user"></i> Nombre</span>
+                <span class="profile-field__value">{{ selectedPerson.name || '—' }}</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-field__label"><i class="fa-solid fa-envelope"></i> Email</span>
+                <span class="profile-field__value">{{ selectedPerson.email || '—' }}</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-field__label"><i class="fa-solid fa-phone"></i> Teléfono</span>
+                <span class="profile-field__value">{{ selectedPerson.phone || '—' }}</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-field__label"><i class="fa-solid fa-cake-candles"></i> Fecha de nacimiento</span>
+                <span class="profile-field__value">{{ selectedPerson.dateOfBirth ? formatDate(selectedPerson.dateOfBirth) : '—' }}</span>
+              </div>
+              <div class="profile-field">
+                <span class="profile-field__label"><i class="fa-solid fa-location-dot"></i> Dirección</span>
+                <span class="profile-field__value">{{ selectedPerson.address || '—' }}</span>
+              </div>
+              <div class="profile-field profile-field--notes" v-if="selectedPerson.notes">
+                <span class="profile-field__label"><i class="fa-solid fa-note-sticky"></i> Notas</span>
+                <span class="profile-field__value">{{ selectedPerson.notes }}</span>
+              </div>
             </div>
-            <div class="profile-field">
-              <span class="profile-field__label"><i class="fa-solid fa-envelope"></i> Email</span>
-              <span class="profile-field__value">{{ selectedPerson.email || '—' }}</span>
+
+            <!-- Profile edit form -->
+            <div v-else class="profile-edit">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Nombre</label>
+                  <input v-model="profileForm.name" type="text" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Email</label>
+                  <input v-model="profileForm.email" type="email" class="form-input" />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Teléfono</label>
+                  <input v-model="profileForm.phone" type="tel" class="form-input" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Fecha de nacimiento</label>
+                  <input v-model="profileForm.dateOfBirth" type="date" class="form-input" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Dirección</label>
+                <input v-model="profileForm.address" type="text" class="form-input" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Notas</label>
+                <textarea v-model="profileForm.notes" class="form-textarea" rows="3"></textarea>
+              </div>
             </div>
-            <div class="profile-field">
-              <span class="profile-field__label"><i class="fa-solid fa-phone"></i> Teléfono</span>
-              <span class="profile-field__value">{{ selectedPerson.phone || '—' }}</span>
-            </div>
-            <div class="profile-field">
-              <span class="profile-field__label"><i class="fa-solid fa-cake-candles"></i> Fecha de nacimiento</span>
-              <span class="profile-field__value">{{ selectedPerson.dateOfBirth ? formatDate(selectedPerson.dateOfBirth) : '—' }}</span>
-            </div>
-            <div class="profile-field">
-              <span class="profile-field__label"><i class="fa-solid fa-location-dot"></i> Dirección</span>
-              <span class="profile-field__value">{{ selectedPerson.address || '—' }}</span>
-            </div>
-            <div class="profile-field profile-field--notes" v-if="selectedPerson.notes">
-              <span class="profile-field__label"><i class="fa-solid fa-note-sticky"></i> Notas</span>
-              <span class="profile-field__value">{{ selectedPerson.notes }}</span>
+
+            <!-- Medical files section -->
+            <div class="medical-section">
+              <div class="medical-section__header">
+                <h3 class="medical-section__title">
+                  <i class="fa-solid fa-file-medical"></i>
+                  Archivos Médicos
+                  <span class="medical-section__count">{{ selectedPerson.medicalFiles?.length || 0 }}</span>
+                </h3>
+                <button
+                  v-if="selectedPerson.medicalFiles?.some((f: any) => !(f.type === 'text/markdown' || f.filename.endsWith('.md')))"
+                  class="btn btn--primary btn--sm"
+                  @click="startAnalysisAll"
+                >
+                  <i class="fa-solid fa-wand-magic-sparkles"></i>
+                  Analizar con IA
+                </button>
+              </div>
+
+              <!-- File list -->
+              <div v-if="selectedPerson.medicalFiles?.length" class="files-grid">
+                <div v-for="file in selectedPerson.medicalFiles" :key="file._id" class="file-card">
+                  <div class="file-card__icon">
+                    <i :class="['fa-regular', getFileIcon(file.type)]"></i>
+                  </div>
+                  <div class="file-card__info">
+                    <a
+                      v-if="file.type === 'text/markdown' || file.filename.endsWith('.md')"
+                      href="#"
+                      class="file-card__name"
+                      @click.prevent="openSavedReport(file)"
+                    >
+                      {{ file.filename }}
+                    </a>
+                    <a v-else :href="file.url" target="_blank" class="file-card__name">{{ file.filename }}</a>
+                    <span class="file-card__meta">{{ file.type }}</span>
+                    <span class="file-card__date">{{ formatDate(file.uploadedAt) }}</span>
+                  </div>
+                  <div class="file-card__actions">
+                    <button
+                      v-if="!(file.type === 'text/markdown' || file.filename.endsWith('.md'))"
+                      class="btn-icon"
+                      title="Analizar con IA"
+                      @click="startAnalysisForFile(file)"
+                    >
+                      <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </button>
+                    <a
+                      v-if="file.type === 'text/markdown' || file.filename.endsWith('.md')"
+                      href="#"
+                      class="btn-icon"
+                      title="Ver reporte"
+                      @click.prevent="openSavedReport(file)"
+                    >
+                      <i class="fa-solid fa-file-medical"></i>
+                    </a>
+                    <a v-else :href="file.url" target="_blank" class="btn-icon" title="Ver archivo">
+                      <i class="fa-solid fa-eye"></i>
+                    </a>
+                    <button class="btn-icon btn-icon--danger" title="Eliminar" @click="handleFileDeleted(file._id)">
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="files-empty">
+                <i class="fa-regular fa-folder-open"></i>
+                <p>Sin archivos médicos</p>
+                <p class="files-empty__hint">Sube resultados de laboratorio, imágenes, recetas u otros documentos.</p>
+              </div>
+
+              <!-- Upload -->
+              <div class="upload-section">
+                <FileUpload
+                  :person-id="selectedPerson._id"
+                  :files="selectedPerson.medicalFiles || []"
+                  @uploaded="handleFileUploaded"
+                  @deleted="handleFileDeleted"
+                />
+              </div>
             </div>
           </div>
 
-          <!-- Profile edit form -->
-          <div v-else class="profile-edit">
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Nombre</label>
-                <input v-model="profileForm.name" type="text" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Email</label>
-                <input v-model="profileForm.email" type="email" class="form-input" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label class="form-label">Teléfono</label>
-                <input v-model="profileForm.phone" type="tel" class="form-input" />
-              </div>
-              <div class="form-group">
-                <label class="form-label">Fecha de nacimiento</label>
-                <input v-model="profileForm.dateOfBirth" type="date" class="form-input" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label">Dirección</label>
-              <input v-model="profileForm.address" type="text" class="form-input" />
-            </div>
-            <div class="form-group">
-              <label class="form-label">Notas</label>
-              <textarea v-model="profileForm.notes" class="form-textarea" rows="3"></textarea>
-            </div>
-          </div>
-
-          <!-- Medical files section -->
-          <div class="medical-section">
-            <div class="medical-section__header">
-              <h3 class="medical-section__title">
-                <i class="fa-solid fa-file-medical"></i>
-                Archivos Médicos
-                <span class="medical-section__count">{{ selectedPerson.medicalFiles?.length || 0 }}</span>
-              </h3>
-            </div>
-
-            <!-- File list -->
-            <div v-if="selectedPerson.medicalFiles?.length" class="files-grid">
-              <div v-for="file in selectedPerson.medicalFiles" :key="file._id" class="file-card">
-                <div class="file-card__icon">
-                  <i :class="['fa-regular', getFileIcon(file.type)]"></i>
-                </div>
-                <div class="file-card__info">
-                  <a :href="file.url" target="_blank" class="file-card__name">{{ file.filename }}</a>
-                  <span class="file-card__meta">{{ file.type }}</span>
-                  <span class="file-card__date">{{ formatDate(file.uploadedAt) }}</span>
-                </div>
-                <div class="file-card__actions">
-                  <a :href="file.url" target="_blank" class="btn-icon" title="Ver archivo">
-                    <i class="fa-solid fa-eye"></i>
-                  </a>
-                  <button class="btn-icon btn-icon--danger" title="Eliminar" @click="handleFileDeleted(file._id)">
-                    <i class="fa-solid fa-trash"></i>
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div v-else class="files-empty">
-              <i class="fa-regular fa-folder-open"></i>
-              <p>Sin archivos médicos</p>
-              <p class="files-empty__hint">Sube resultados de laboratorio, imágenes, recetas u otros documentos.</p>
-            </div>
-
-            <!-- Upload -->
-            <div class="upload-section">
-              <FileUpload
-                :person-id="selectedPerson._id"
-                :files="selectedPerson.medicalFiles || []"
-                @uploaded="handleFileUploaded"
-                @deleted="handleFileDeleted"
-              />
-            </div>
+          <div v-else-if="activeTab === 'analysis'" class="tab-content-wrapper animate-fade-in">
+            <PrecisionAnalysis
+              :person="selectedPerson"
+              :initial-report-content="initialReportContent"
+              :initial-selected-files="initialSelectedFiles"
+              @uploaded="handleFileUploaded"
+              @error="(msg) => error = msg"
+              @go-to-profile="activeTab = 'profile'"
+            />
           </div>
         </main>
 
@@ -907,6 +1019,65 @@ onMounted(async () => {
     display: flex;
     gap: 0.5rem;
   }
+}
+
+// ── Person Tabs ──
+.person-tabs {
+  display: flex;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.75rem;
+}
+
+.person-tab {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-3);
+  font-family: var(--font-montserrat);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+
+  i {
+    font-size: 0.9rem;
+    transition: transform 0.2s;
+  }
+
+  &:hover {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.03);
+    i {
+      transform: translateY(-1px);
+    }
+  }
+
+  &--active {
+    background: rgba(33, 188, 251, 0.08);
+    border-color: rgba(33, 188, 251, 0.25);
+    color: var(--primary);
+    box-shadow: 0 0 10px rgba(33, 188, 251, 0.05);
+  }
+}
+
+.tab-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 // ── Profile Fields ──
