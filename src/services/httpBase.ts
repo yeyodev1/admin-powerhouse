@@ -17,7 +17,7 @@ class APIBase {
   private setupInterceptors() {
     this.axiosInstance.interceptors.request.use(
       (config) => {
-        config.timeout = config.timeout || 15000
+        config.timeout = config.timeout || 300000 // 5 minutos de timeout
         return config
       },
       (error) => Promise.reject(error),
@@ -64,14 +64,17 @@ class APIBase {
         ...config,
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
-          data: error.response.data,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          throw {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            data: error.response.data,
+          }
         }
+        throw { status: 0, message: error.message || 'Network or CORS Error' }
       }
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -95,14 +98,17 @@ class APIBase {
         ...config,
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
-          data: error.response.data,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          throw {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            data: error.response.data,
+          }
         }
+        throw { status: 0, message: error.message || 'Network or CORS Error' }
       }
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -119,14 +125,17 @@ class APIBase {
         ...config,
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
-          data: error.response.data,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          throw {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            data: error.response.data,
+          }
         }
+        throw { status: 0, message: error.message || 'Network or CORS Error' }
       }
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -143,14 +152,17 @@ class APIBase {
         ...config,
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
-          data: error.response.data,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          throw {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            data: error.response.data,
+          }
         }
+        throw { status: 0, message: error.message || 'Network or CORS Error' }
       }
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 
@@ -166,14 +178,17 @@ class APIBase {
         ...config,
       })
     } catch (error: unknown) {
-      if (axios.isAxiosError(error) && error.response) {
-        throw {
-          status: error.response.status,
-          message: error.response.data?.message || error.message,
-          data: error.response.data,
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          throw {
+            status: error.response.status,
+            message: error.response.data?.message || error.message,
+            data: error.response.data,
+          }
         }
+        throw { status: 0, message: error.message || 'Network or CORS Error' }
       }
-      throw { status: 500, message: 'Unknown error' }
+      throw { status: 500, message: error instanceof Error ? error.message : 'Unknown error' }
     }
   }
 }

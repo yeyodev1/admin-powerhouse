@@ -61,6 +61,11 @@ export class PersonService extends APIBase {
     const response = await this.post<{ message: string; result: string }>(`/persons/${id}/report`, payload)
     return response.data
   }
+
+  async saveAnalysis(id: string, payload: { filesUsed: string[]; openAiResult: string; patientParams: any; claudeResult: string }) {
+    const response = await this.post<{ message: string; person: any }>(`/persons/${id}/analyses`, payload)
+    return response.data
+  }
 }
 
 export const personService = new PersonService()

@@ -6,6 +6,7 @@ import { personService } from '@/services/person.service'
 import { useUserStore } from '@/stores/user'
 import FileUpload from '@/components/admin/FileUpload.vue'
 import PrecisionAnalysis from '@/components/admin/PrecisionAnalysis.vue'
+import AnalysisHistory from '@/components/admin/AnalysisHistory.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -192,6 +193,18 @@ async function handleFileUploaded(file: { url: string; filename: string; type: s
     setTimeout(() => (uploadSuccess.value = false), 3000)
   } catch (e: any) {
     error.value = e?.message || 'Error al subir archivo'
+  }
+}
+
+async function handleHistorySaved(personId: string) {
+  try {
+    const updated = await personService.getPersonById(personId)
+    selectedPerson.value = updated
+    const idx = persons.value.findIndex((p: any) => p._id === updated._id)
+    if (idx !== -1) persons.value[idx] = updated
+    activeTab.value = 'history' // Switch to history tab automatically
+  } catch (e: any) {
+    error.value = e?.message || 'Error al actualizar el historial de la persona'
   }
 }
 
@@ -445,6 +458,14 @@ onMounted(async () => {
               <i class="fa-solid fa-vial-medical"></i>
               Análisis de Precisión
             </button>
+            <button
+              class="person-tab"
+              :class="{ 'person-tab--active': activeTab === 'history' }"
+              @click="activeTab = 'history'"
+            >
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              Historial de Análisis
+            </button>
           </div>
 
           <div v-if="activeTab === 'profile'" class="tab-content-wrapper animate-fade-in">
@@ -596,8 +617,16 @@ onMounted(async () => {
               :initial-report-content="initialReportContent"
               :initial-selected-files="initialSelectedFiles"
               @uploaded="handleFileUploaded"
+              @history-saved="handleHistorySaved"
               @error="(msg) => error = msg"
               @go-to-profile="activeTab = 'profile'"
+            />
+          </div>
+
+          <div v-else-if="activeTab === 'history'" class="tab-content-wrapper animate-fade-in">
+            <AnalysisHistory
+              :person="selectedPerson"
+              @error="(msg) => error = msg"
             />
           </div>
         </main>

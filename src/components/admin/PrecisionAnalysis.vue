@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useAiAnalysis } from '@/composables/useAiAnalysis'
+import { personService } from '@/services/person.service'
 
 const props = defineProps<{
   person: any
@@ -91,28 +92,22 @@ async function startClaudeStep() {
   }
 }
 
-function handleSaveReport() {
+async function handleSaveReport() {
   if (!claudeResult.value) return
   savingReport.value = true
   try {
-    const formattedDate = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, '-')
-    const blob = new Blob([claudeResult.value], { type: 'text/markdown' })
-    const reader = new FileReader()
-    reader.onload = () => {
-      emit('uploaded', {
-        url: reader.result as string,
-        filename: `Reporte de Medicina Regenerativa - ${formattedDate}.md`,
-        type: 'text/markdown'
-      })
-      savingReport.value = false
-    }
-    reader.onerror = () => {
-      emit('error', 'Error al procesar el reporte para guardarlo.')
-      savingReport.value = false
-    }
-    reader.readAsDataURL(blob)
+    const filesUsedNames = selectedFiles.value.map((f) => f.filename)
+    await personService.saveAnalysis(props.person._id, {
+      filesUsed: filesUsedNames,
+      openAiResult: openAiResult.value,
+      patientParams: patientParams.value,
+      claudeResult: claudeResult.value
+    })
+    emit('history-saved', props.person._id)
+    alert('Historial de Análisis Clínico AI guardado con éxito.')
+    savingReport.value = false
   } catch (e: any) {
-    emit('error', e.message || 'Error al guardar el reporte.')
+    emit('error', e.message || 'Error al guardar el reporte en el historial.')
     savingReport.value = false
   }
 }
@@ -304,37 +299,73 @@ function compileTable(rows: string[]): string {
         <p class="step-description">Verifica los datos clínicos extraídos por OpenAI. Puedes completarlos o ajustarlos antes de diseñar el reporte de Medicina Regenerativa con Claude.</p>
       </div>
 
-      <div class="params-form card-glass">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Nombre Completo</label>
-            <input v-model="patientParams.name" type="text" class="form-input" />
+      <div class="review-layout">
+        <!-- Analysis Results -->
+        <div class="review-layout__results card-glass">
+          <div class="review-layout__results-header">
+            <h4><i class="fa-solid fa-brain" style="color: var(--primary); margin-right: 0.5rem;"></i> Análisis Clínico Maestro (OpenAI)</h4>
           </div>
-          <div class="form-group">
-            <label class="form-label">Estadio de ERC y Causa</label>
-            <input v-model="patientParams.ercStage" type="text" class="form-input" placeholder="Ej. ERC Estadio 5 - Nefropatía Diabética" />
-          </div>
+          <div class="review-layout__results-content markdown-viewer" v-html="parseMarkdown(openAiResult)"></div>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Estado de Trasplante</label>
-            <input v-model="patientParams.transplantStatus" type="text" class="form-input" placeholder="Ej. Candidato a trasplante pre-emptivo" />
+        <!-- Parameters Form -->
+        <div class="review-layout__form card-glass">
+          <div class="review-layout__form-header">
+            <h4><i class="fa-solid fa-sliders" style="color: var(--cyan); margin-right: 0.5rem;"></i> Ajuste de Parámetros</h4>
+            <p>Verifica y ajusta los datos antes de generar el reporte final.</p>
           </div>
-          <div class="form-group">
-            <label class="form-label">Centro de Evaluación</label>
-            <input v-model="patientParams.evaluationCenter" type="text" class="form-input" placeholder="Ej. UCSF, Mayo Clinic" />
+
+          <div class="params-form">
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Nombre Completo</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-user"></i>
+                  <input v-model="patientParams.name" type="text" class="form-input" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Estadio de ERC y Causa</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-kidneys"></i>
+                  <input v-model="patientParams.ercStage" type="text" class="form-input" placeholder="Ej. ERC Estadio 5 - Nefropatía Diabética" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label">Estado de Trasplante</label>
+                <div class="input-wrapper">
+                  <i class="fa-solid fa-heart-pulse"></i>
+                  <input v-model="patientParams.transplantStatus" type="text" class="form-input" placeholder="Ej. Candidato a trasplante pre-emptivo" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Centro de Evaluación</label>
+                <div class="input-wrapper">
+                  <i class="fa-regular fa-hospital"></i>
+                  <input v-model="patientParams.evaluationCenter" type="text" class="form-input" placeholder="Ej. UCSF, Mayo Clinic" />
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Datos de Laboratorio Clave (eGFR, Creatinina, PTH...)</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-flask"></i>
+                <input v-model="patientParams.labValues" type="text" class="form-input" placeholder="Ej. eGFR: 8, Creatinina: 6.2, PTH: 350" />
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Detalles Biológicos y Contexto</label>
+              <div class="input-wrapper input-wrapper--textarea">
+                <i class="fa-solid fa-dna" style="margin-top: 0.75rem;"></i>
+                <textarea v-model="patientParams.biologicalDetails" class="form-textarea" rows="3" placeholder="Ej. Paciente joven, buen estado nutricional, potencial donante vivo"></textarea>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Datos de Laboratorio Clave (eGFR, Creatinina, PTH...)</label>
-          <input v-model="patientParams.labValues" type="text" class="form-input" placeholder="Ej. eGFR: 8, Creatinina: 6.2, PTH: 350" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Detalles Biológicos y Contexto</label>
-          <textarea v-model="patientParams.biologicalDetails" class="form-textarea" rows="2" placeholder="Ej. Paciente joven, buen estado nutricional, potencial donante vivo"></textarea>
         </div>
       </div>
 
@@ -348,14 +379,6 @@ function compileTable(rows: string[]): string {
           Generar Informe Regenerativo con Claude
         </button>
       </div>
-
-      <!-- OpenAI Intermediate Output (Collapsible) -->
-      <details class="intermediate-results card-glass">
-        <summary class="intermediate-results__title">
-          <i class="fa-solid fa-chart-line"></i> Ver Análisis Clínico Maestro (OpenAI)
-        </summary>
-        <div class="intermediate-results__content markdown-viewer" v-html="parseMarkdown(openAiResult)"></div>
-      </details>
     </div>
 
     <!-- STEP 4: Report generated! Show report and actions -->
@@ -383,8 +406,21 @@ function compileTable(rows: string[]): string {
       </div>
 
       <!-- Professional Printable Report Viewer -->
-      <div class="report-document-sheet">
+      <div class="report-document-sheet print-document">
+        <div class="report-brand-header print-only">
+           <div class="report-brand-header__logo">
+             POWERHOUSE BIOTECH
+           </div>
+           <div class="report-brand-header__meta">
+             <p><strong>REPORTE CLÍNICO CONFIDENCIAL</strong></p>
+             <p>Medicina Regenerativa & Longevidad Avanzada</p>
+           </div>
+        </div>
         <div class="report-document-container markdown-viewer" v-html="parseMarkdown(claudeResult)"></div>
+        <div class="report-brand-footer print-only">
+          <p>www.powerhousebiotech.com</p>
+          <p>Documento generado por análisis algorítmico AI y supervisión clínica.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -568,12 +604,155 @@ function compileTable(rows: string[]): string {
   }
 }
 
-// ── Params Form ──
+// ── Review Layout (Step 3) ──
+.review-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+
+  &__results {
+    display: flex;
+    flex-direction: column;
+    max-height: 800px;
+    
+    &-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      
+      h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+      }
+    }
+
+    &-content {
+      padding: 1.5rem;
+      overflow-y: auto;
+      
+      // Scrollbar styles
+      &::-webkit-scrollbar { width: 6px; }
+      &::-webkit-scrollbar-track { background: transparent; }
+      &::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+      &::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+    }
+  }
+
+  &__form {
+    display: flex;
+    flex-direction: column;
+
+    &-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      
+      h4 {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+      }
+      p {
+        margin: 0.25rem 0 0;
+        font-size: 0.8rem;
+        color: var(--text-2);
+      }
+    }
+  }
+}
+
+// ── Params Form Styles ──
 .params-form {
   padding: 1.5rem;
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-row {
+  display: flex;
   gap: 1rem;
+  
+  @media (max-width: 600px) {
+    flex-direction: column;
+  }
+  
+  .form-group {
+    flex: 1;
+  }
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  i {
+    position: absolute;
+    left: 1rem;
+    color: var(--text-3);
+    font-size: 0.9rem;
+    pointer-events: none;
+  }
+
+  &--textarea i {
+    top: 0;
+    align-items: flex-start;
+  }
+
+  .form-input,
+  .form-textarea {
+    width: 100%;
+    background: rgba(10, 13, 40, 0.5);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.75rem 1rem 0.75rem 2.5rem;
+    color: var(--text);
+    font-family: var(--font-secondary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(33, 188, 251, 0.15);
+      background: rgba(10, 13, 40, 0.8);
+    }
+    
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.2);
+    }
+  }
+
+  .form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    line-height: 1.5;
+  }
 }
 
 // ── Loading state ──
@@ -657,35 +836,6 @@ function compileTable(rows: string[]): string {
     background: linear-gradient(90deg, var(--cyan) 0%, var(--blue) 100%);
     border-radius: 4px;
     transition: width 0.4s ease;
-  }
-}
-
-// ── Intermediate Results (details) ──
-.intermediate-results {
-  padding: 1rem;
-  cursor: pointer;
-
-  &__title {
-    font-weight: 600;
-    font-size: 0.85rem;
-    color: var(--primary);
-    list-style: none;
-    outline: none;
-    user-select: none;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-
-    &::-webkit-details-marker { display: none; }
-  }
-
-  &__content {
-    margin-top: 1rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--border);
-    cursor: default;
-    max-height: 400px;
-    overflow-y: auto;
   }
 }
 
@@ -800,15 +950,7 @@ function compileTable(rows: string[]): string {
     th {
       background: rgba(33, 188, 251, 0.1);
       color: var(--primary);
-      font-family: var(--font-montserrat);
       font-weight: 700;
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-    }
-
-    tr:last-child td {
-      border-bottom: none;
     }
 
     tr:nth-child(even) {
