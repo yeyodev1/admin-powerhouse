@@ -6,13 +6,13 @@ export class UserService extends APIBase {
     return response.data
   }
 
-  async createUser(data: { name: string; email: string; password: string; role?: string }) {
+  async createUser(data: { name: string; email: string; password: string; role?: string; isInternal?: boolean }) {
     const response = await this.post<any>('/users', data)
     return response.data
   }
 
-  async updateUser(id: string, data: { name?: string; email?: string; role?: string }) {
-    const response = await this.put<any>(`/users/${id}`, data)
+  async updateUser(id: string, data: { name?: string; email?: string; role?: string; isInternal?: boolean }) {
+    const response = await this.patch<any>(`/users/${id}`, data)
     return response.data
   }
 

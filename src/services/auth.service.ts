@@ -12,7 +12,7 @@ export class AuthService extends APIBase {
   }
 
   async getMe() {
-    const response = await this.get<{ id: string; name: string; email: string; role: string; createdAt: string }>('/auth/me')
+    const response = await this.get<{ id: string; name: string; email: string; role: string; isInternal: boolean; createdAt: string }>('/auth/me')
     return response.data
   }
 }

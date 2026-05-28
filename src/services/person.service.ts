@@ -28,7 +28,7 @@ export class PersonService extends APIBase {
   }
 
   async updatePerson(id: string, data: Partial<PersonData>) {
-    const response = await this.put<any>(`/persons/${id}`, data)
+    const response = await this.patch<any>(`/persons/${id}`, data)
     return response.data
   }
 

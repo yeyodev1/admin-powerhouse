@@ -5,6 +5,7 @@ export interface UserState {
   name: string | null
   email: string | null
   role: string | null
+  isInternal: boolean
   isAuthenticated: boolean
 }
 
@@ -14,6 +15,7 @@ export const useUserStore = defineStore('user', {
     name: null,
     email: null,
     role: null,
+    isInternal: false,
     isAuthenticated: false,
   }),
 
@@ -36,7 +38,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    setUser(payload: { id?: string; name?: string; email?: string; role?: string }) {
+    setUser(payload: { id?: string; name?: string; email?: string; role?: string; isInternal?: boolean }) {
       if (payload.id !== undefined) {
         this.id = payload.id
         try { localStorage.setItem('user_id', payload.id) } catch {}
@@ -53,6 +55,10 @@ export const useUserStore = defineStore('user', {
         this.role = payload.role
         try { localStorage.setItem('user_role', payload.role) } catch {}
       }
+      if (payload.isInternal !== undefined) {
+        this.isInternal = payload.isInternal
+        try { localStorage.setItem('user_isInternal', String(payload.isInternal)) } catch {}
+      }
       this.isAuthenticated = true
     },
 
@@ -61,11 +67,13 @@ export const useUserStore = defineStore('user', {
       this.name = null
       this.email = null
       this.role = null
+      this.isInternal = false
       this.isAuthenticated = false
       try {
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_id')
         localStorage.removeItem('user_role')
+        localStorage.removeItem('user_isInternal')
       } catch {}
     },
   },

@@ -181,6 +181,7 @@ onMounted(() => {
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Rol</th>
+                <th>Interno</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -189,13 +190,23 @@ onMounted(() => {
                 <td>{{ u.name }}</td>
                 <td>{{ u.email }}</td>
                 <td><span class="badge" :class="u.role === 'admin' ? 'badge-admin' : 'badge-user'">{{ u.role }}</span></td>
+                <td>
+                  <span v-if="u.isInternal" class="badge badge-internal">
+                    <i class="fa-solid fa-lock"></i> Interno
+                  </span>
+                  <span v-else class="badge badge-external">Ext.</span>
+                </td>
                 <td class="actions">
-                  <button class="action-btn" @click="openUserEdit(u)">Editar</button>
-                  <button class="action-btn action-btn--danger" @click="confirmDeleteUser(u)">Eliminar</button>
+                  <button class="action-btn" title="Editar" @click="openUserEdit(u)">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="action-btn action-btn--danger" title="Eliminar" @click="confirmDeleteUser(u)">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
                 </td>
               </tr>
               <tr v-if="!users.length">
-                <td colspan="4" class="empty">No hay usuarios</td>
+                <td colspan="5" class="empty">No hay usuarios</td>
               </tr>
             </tbody>
           </table>
@@ -227,9 +238,15 @@ onMounted(() => {
                 <td>{{ p.phone || '—' }}</td>
                 <td>{{ formatDate(p.createdAt) }}</td>
                 <td class="actions">
-                  <button class="action-btn" @click="openPersonEdit(p)">Editar</button>
-                  <button class="action-btn" @click="openFiles(p)">Archivos</button>
-                  <button class="action-btn action-btn--danger" @click="confirmDeletePerson(p)">Eliminar</button>
+                  <button class="action-btn" title="Editar" @click="openPersonEdit(p)">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                  </button>
+                  <button class="action-btn" title="Archivos" @click="openFiles(p)">
+                    <i class="fa-solid fa-folder-open"></i>
+                  </button>
+                  <button class="action-btn action-btn--danger" title="Eliminar" @click="confirmDeletePerson(p)">
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
                 </td>
               </tr>
               <tr v-if="!persons.length">
@@ -412,7 +429,9 @@ onMounted(() => {
 }
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   padding: 0.25rem 0.75rem;
   border-radius: 50px;
   font-size: 0.75rem;
@@ -428,6 +447,18 @@ onMounted(() => {
     background: rgba(255, 255, 255, 0.05);
     color: var(--text-3);
   }
+
+  &-internal {
+    background: rgba(239, 68, 68, 0.12);
+    color: #fca5a5;
+    border: 1px solid rgba(239, 68, 68, 0.25);
+  }
+
+  &-external {
+    background: rgba(16, 185, 129, 0.1);
+    color: #6ee7b7;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+  }
 }
 
 .actions {
@@ -442,9 +473,14 @@ onMounted(() => {
   color: var(--text-2);
   font-family: var(--font-montserrat);
   font-size: 0.8rem;
-  padding: 0.375rem 0.75rem;
+  padding: 0.375rem 0.6rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  i { font-size: 0.8rem; }
 
   &:hover {
     border-color: var(--primary);
