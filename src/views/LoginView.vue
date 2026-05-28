@@ -19,8 +19,12 @@ async function handleLogin() {
   try {
     const data = await authService.login({ email: email.value, password: password.value })
     localStorage.setItem('access_token', data.access_token)
-    userStore.setUser({ id: data.user.id, name: data.user.name, email: data.user.email })
-    router.push('/')
+    userStore.setUser({ id: data.user.id, name: data.user.name, email: data.user.email, role: data.user.role })
+    if (data.user.role === 'admin') {
+      router.push('/admin')
+    } else {
+      router.push('/user')
+    }
   } catch (e: any) {
     error.value = e?.message || 'Credenciales inválidas. Verifica tu email y contraseña.'
   } finally {

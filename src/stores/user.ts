@@ -4,6 +4,7 @@ export interface UserState {
   id: string | null
   name: string | null
   email: string | null
+  role: string | null
   isAuthenticated: boolean
 }
 
@@ -12,6 +13,7 @@ export const useUserStore = defineStore('user', {
     id: null,
     name: null,
     email: null,
+    role: null,
     isAuthenticated: false,
   }),
 
@@ -34,7 +36,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    setUser(payload: { id?: string; name?: string; email?: string }) {
+    setUser(payload: { id?: string; name?: string; email?: string; role?: string }) {
       if (payload.id !== undefined) {
         this.id = payload.id
         try { localStorage.setItem('user_id', payload.id) } catch {}
@@ -47,6 +49,10 @@ export const useUserStore = defineStore('user', {
         this.email = payload.email
         try { localStorage.setItem('user_email', payload.email) } catch {}
       }
+      if (payload.role !== undefined) {
+        this.role = payload.role
+        try { localStorage.setItem('user_role', payload.role) } catch {}
+      }
       this.isAuthenticated = true
     },
 
@@ -54,10 +60,12 @@ export const useUserStore = defineStore('user', {
       this.id = null
       this.name = null
       this.email = null
+      this.role = null
       this.isAuthenticated = false
       try {
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_id')
+        localStorage.removeItem('user_role')
       } catch {}
     },
   },

@@ -13,6 +13,18 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import('../views/LoginView.vue'),
     meta: { title: 'Login' },
   },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../views/AdminView.vue'),
+    meta: { title: 'Admin', requiresAuth: true, role: 'admin' },
+  },
+  {
+    path: '/user',
+    name: 'UserDashboard',
+    component: () => import('../views/UserDashboard.vue'),
+    meta: { title: 'Mi Panel', requiresAuth: true },
+  },
 ]
 
 const router = createRouter({
@@ -26,13 +38,22 @@ const router = createRouter({
 router.beforeEach((to, _from, next) => {
   const hasToken = !!localStorage.getItem('access_token')
   const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth)
+  const requiredRole = to.matched.find((record) => record.meta?.role)?.meta?.role as string | undefined
 
   if (requiresAuth && !hasToken) {
     return next({ path: '/login', replace: true })
   }
 
+  if (requiredRole) {
+    const userRole = localStorage.getItem('user_role')
+    if (userRole !== requiredRole) {
+      return next({ path: userRole === 'admin' ? '/admin' : '/user', replace: true })
+    }
+  }
+
   if (to.path === '/login' && hasToken) {
-    return next({ path: '/', replace: true })
+    const role = localStorage.getItem('user_role')
+    return next({ path: role === 'admin' ? '/admin' : '/user', replace: true })
   }
 
   next()
