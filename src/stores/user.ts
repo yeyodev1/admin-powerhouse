@@ -10,14 +10,32 @@ export interface UserState {
 }
 
 export const useUserStore = defineStore('user', {
-  state: (): UserState => ({
-    id: null,
-    name: null,
-    email: null,
-    role: null,
-    isInternal: false,
-    isAuthenticated: false,
-  }),
+  state: (): UserState => {
+    let id: string | null = null
+    let name: string | null = null
+    let email: string | null = null
+    let role: string | null = null
+    let isInternal = false
+    let isAuthenticated = false
+
+    try {
+      id = localStorage.getItem('user_id')
+      name = localStorage.getItem('user_name')
+      email = localStorage.getItem('user_email')
+      role = localStorage.getItem('user_role')
+      isInternal = localStorage.getItem('user_isInternal') === 'true'
+      isAuthenticated = !!localStorage.getItem('access_token')
+    } catch {}
+
+    return {
+      id,
+      name,
+      email,
+      role,
+      isInternal,
+      isAuthenticated,
+    }
+  },
 
   actions: {
     isLoggedIn(): boolean {
@@ -72,6 +90,8 @@ export const useUserStore = defineStore('user', {
       try {
         localStorage.removeItem('access_token')
         localStorage.removeItem('user_id')
+        localStorage.removeItem('user_name')
+        localStorage.removeItem('user_email')
         localStorage.removeItem('user_role')
         localStorage.removeItem('user_isInternal')
       } catch {}

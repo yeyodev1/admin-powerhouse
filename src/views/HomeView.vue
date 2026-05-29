@@ -1,10 +1,23 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
+const router = useRouter()
 const userStore = useUserStore()
 
 function isLoggedIn(): boolean {
   return !!localStorage.getItem('access_token')
+}
+
+const dashboardPath = computed(() => {
+  const role = userStore.role || localStorage.getItem('user_role')
+  return role === 'admin' ? '/admin' : '/user'
+})
+
+function handleLogout() {
+  userStore.clear()
+  router.push('/login')
 }
 </script>
 
@@ -27,12 +40,22 @@ function isLoggedIn(): boolean {
         class="hero-nav__logo"
       />
       <div class="hero-nav__actions">
-        <router-link v-if="!isLoggedIn()" to="/login" class="btn btn-ghost">
-          Iniciar Sesión
-        </router-link>
-        <span v-else class="hero-nav__welcome">
-          Bienvenido, {{ userStore.name || 'Usuario' }}
-        </span>
+        <template v-if="isLoggedIn()">
+          <span class="hero-nav__welcome">
+            Bienvenido, <strong class="hero-nav__username">{{ userStore.name || 'Usuario' }}</strong>
+          </span>
+          <router-link :to="dashboardPath" class="btn btn-primary btn-sm">
+            Mi Panel
+          </router-link>
+          <button @click="handleLogout" class="btn btn-ghost btn-sm">
+            Cerrar Sesión
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="btn btn-ghost">
+            Iniciar Sesión
+          </router-link>
+        </template>
       </div>
     </nav>
 
@@ -58,9 +81,19 @@ function isLoggedIn(): boolean {
       </p>
 
       <div class="hero-content__cta">
-        <router-link v-if="!isLoggedIn()" to="/login" class="btn btn-outline btn-lg">
-          Ya tengo cuenta
-        </router-link>
+        <template v-if="isLoggedIn()">
+          <router-link :to="dashboardPath" class="btn btn-primary btn-lg">
+            Ir a mi Panel
+          </router-link>
+          <button @click="handleLogout" class="btn btn-outline btn-lg">
+            Cerrar Sesión
+          </button>
+        </template>
+        <template v-else>
+          <router-link to="/login" class="btn btn-outline btn-lg">
+            Ya tengo cuenta
+          </router-link>
+        </template>
       </div>
 
       <div class="hero-content__stats">
@@ -149,6 +182,11 @@ function isLoggedIn(): boolean {
     color: var(--text-2);
     font-size: 0.95rem;
     font-family: var(--font-montserrat);
+    margin-right: 0.5rem;
+  }
+
+  &__username {
+    color: var(--text);
   }
 }
 
@@ -331,6 +369,12 @@ function isLoggedIn(): boolean {
     font-size: 1rem;
   }
 
+  &-sm {
+    padding: 0.45rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 6px;
+  }
+
   &-primary {
     background: linear-gradient(135deg, var(--cyan) 0%, var(--blue) 100%);
     color: #171846;
@@ -377,6 +421,14 @@ function isLoggedIn(): boolean {
 
     &__logo {
       height: 36px;
+    }
+
+    &__welcome {
+      display: none;
+    }
+
+    &__actions {
+      gap: 0.5rem;
     }
   }
 
