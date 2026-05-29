@@ -1488,3 +1488,42 @@ onMounted(async () => {
   to { transform: translateX(-50%) translateY(0); opacity: 1; }
 }
 </style>
+
+<style lang="scss">
+/* ── Global Print Styles for Dashboard ── */
+@media print {
+  /* Ocultar elementos de navegación y estructurales innecesarios */
+  .admin-header,
+  .persons-sidebar,
+  .person-detail__header,
+  .person-tabs,
+  .viewer-actions,
+  .analysis-controls {
+    display: none !important;
+  }
+  
+  /* Resetear contenedores principales para que ocupen todo el espacio */
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  #app,
+  .admin-layout,
+  .admin-main,
+  .dashboard-container,
+  .person-detail,
+  .analysis-viewer,
+  .precision-analysis-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+    display: block !important;
+  }
+}
+</style>
