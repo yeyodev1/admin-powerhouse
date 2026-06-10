@@ -132,10 +132,10 @@ Analiza estos datos clínicos y los documentos adjuntos.`
       const jsonStartMarker = '---JSON_EXTRACTED---'
       if (rawText.includes(jsonStartMarker)) {
         const parts = rawText.split(jsonStartMarker)
-        openAiResult.value = parts[0].trim()
+        openAiResult.value = (parts[0] || '').trim()
         
         try {
-          const jsonText = parts[1].trim()
+          const jsonText = (parts[1] || '').trim()
           const extracted = JSON.parse(jsonText)
           patientParams.value.name = person.name
           patientParams.value.ercStage = `${extracted.ercStage || 'ERC Estadio 5'} - ${extracted.ercCause || 'Nefropatía Diabética'}`

@@ -13,6 +13,7 @@ const emit = defineEmits<{
   uploaded: [file: { url: string; filename: string; type: string }]
   error: [message: string]
   goToProfile: []
+  'history-saved': [id: string]
 }>()
 
 const {
@@ -41,7 +42,7 @@ watch(() => props.initialReportContent, (newVal) => {
 watch(() => [props.person?._id, props.initialSelectedFiles], () => {
   if (props.initialSelectedFiles && props.initialSelectedFiles.length > 0) {
     selectedFiles.value = props.person?.medicalFiles?.filter((file: any) =>
-      props.initialSelectedFiles.some(f => f._id === file._id)
+      props.initialSelectedFiles?.some(f => f._id === file._id)
     ) || []
   } else if (props.person?.medicalFiles) {
     // Select all non-report files by default so the button is active immediately
@@ -120,6 +121,19 @@ function copyReportToClipboard() {
 
 function printReport() {
   window.print()
+}
+
+function formatDate(dateStr: string) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+}
+
+function formatBirthDate(dateStr: string) {
+  if (!dateStr) return ''
+  const date = new Date(dateStr)
+  if (isNaN(date.getTime())) return dateStr
+  return date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
 }
 
 // Markdown to HTML simple parser
@@ -407,19 +421,45 @@ function compileTable(rows: string[]): string {
 
       <!-- Professional Printable Report Viewer -->
       <div class="report-document-sheet print-document">
-        <div class="report-brand-header print-only">
+        <div class="report-brand-header">
            <div class="report-brand-header__logo">
-             POWERHOUSE BIOTECH
+             <span class="logo-main">POWERHOUSE</span>
+             <span class="logo-sub">BIOTECH</span>
            </div>
            <div class="report-brand-header__meta">
-             <p><strong>REPORTE CLÍNICO CONFIDENCIAL</strong></p>
-             <p>Medicina Regenerativa & Longevidad Avanzada</p>
+             <p class="meta-title">REPORTE CLÍNICO CONFIDENCIAL</p>
+             <p>Medicina Regenerativa &amp; Longevidad Avanzada</p>
+             <p>{{ formatDate(new Date().toISOString()) }}</p>
            </div>
         </div>
+
+        <!-- Patient info bar -->
+        <div class="report-patient-bar">
+          <div class="patient-info-grid">
+            <div>
+              <span class="patient-label">PACIENTE</span>
+              <span class="patient-name">{{ props.person?.name || 'N/A' }}</span>
+            </div>
+            <div v-if="props.person?.email">
+              <span class="patient-label">EMAIL</span>
+              <span class="patient-value">{{ props.person.email }}</span>
+            </div>
+            <div v-if="props.person?.phone">
+              <span class="patient-label">TELÉFONO</span>
+              <span class="patient-value">{{ props.person.phone }}</span>
+            </div>
+            <div v-if="props.person?.dateOfBirth">
+              <span class="patient-label">FECHA DE NACIMIENTO</span>
+              <span class="patient-value">{{ formatBirthDate(props.person.dateOfBirth) }}</span>
+            </div>
+          </div>
+          <span class="confidential-badge">CONFIDENCIAL</span>
+        </div>
+
         <div class="report-document-container markdown-viewer" v-html="parseMarkdown(claudeResult)"></div>
-        <div class="report-brand-footer print-only">
-          <p>www.powerhousebiotech.com</p>
-          <p>Documento generado por análisis algorítmico AI y supervisión clínica.</p>
+        <div class="report-brand-footer">
+           <p>www.powerhousebiotech.com</p>
+           <p>Documento generado por análisis algorítmico AI y supervisión clínica.</p>
         </div>
       </div>
     </div>
@@ -874,37 +914,146 @@ function compileTable(rows: string[]): string {
   }
 }
 
+// ── BRAND HEADER ──
+.report-brand-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-bottom: 2px solid rgba(33, 188, 251, 0.3);
+  padding-bottom: 1.5rem;
+  margin-bottom: 2rem;
+
+  &__logo {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+
+    .logo-main {
+      font-size: 2rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      color: #fff;
+    }
+
+    .logo-sub {
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.2em;
+      color: #21bcfb;
+      text-transform: uppercase;
+    }
+  }
+
+  &__meta {
+    text-align: right;
+    font-size: 0.85rem;
+    line-height: 1.6;
+
+    .meta-title {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    p { color: rgba(255, 255, 255, 0.6); margin: 0; }
+  }
+}
+
+// ── PATIENT BAR ──
+.report-patient-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(33, 188, 251, 0.06);
+  border-left: 4px solid #21bcfb;
+  border-radius: 4px;
+  padding: 1.2rem 1.6rem;
+  margin-bottom: 2.5rem;
+
+  .patient-info-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.5rem;
+  }
+
+  .patient-label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.15em;
+    color: rgba(255, 255, 255, 0.45);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .patient-name {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #fff;
+    text-transform: capitalize;
+  }
+
+  .patient-value {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  .confidential-badge {
+    background: rgba(220, 38, 38, 0.15);
+    color: #f87171;
+    border: 1px solid rgba(220, 38, 38, 0.3);
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    padding: 6px 14px;
+    border-radius: 4px;
+  }
+}
+
+.report-brand-footer {
+  margin-top: 3rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  padding-top: 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
 // ── Markdown Styles (Global to report display) ──
 :deep(.markdown-viewer) {
   font-family: var(--font-secondary);
-  font-size: 0.95rem;
-  color: var(--text-2);
-  line-height: 1.6;
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.88);
+  line-height: 1.85;
 
   h1, h2, h3, h4 {
     font-family: var(--font-montserrat);
-    color: var(--text);
+    color: #21bcfb;
     font-weight: 700;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
     line-height: 1.3;
   }
 
-  h1 { font-size: 1.5rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
-  h2 { font-size: 1.25rem; color: var(--primary); }
-  h3 { font-size: 1.1rem; color: var(--accent); }
+  h1 { font-size: 1.85rem; border-bottom: 2px solid var(--border); padding-bottom: 0.5rem; }
+  h2 { font-size: 1.55rem; color: var(--primary); }
+  h3 { font-size: 1.3rem; color: var(--accent); }
 
   p {
-    margin-bottom: 1rem;
+    margin-bottom: 1.2rem;
   }
 
   ul, ol {
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
     padding-left: 1.25rem;
   }
 
   li {
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.6rem;
     &::marker {
       color: var(--primary);
     }
@@ -918,7 +1067,7 @@ function compileTable(rows: string[]): string {
   .bullet-dot {
     color: var(--primary);
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
   }
 
   .report-divider {
@@ -931,19 +1080,19 @@ function compileTable(rows: string[]): string {
   // Table Styling
   .report-table-wrapper {
     overflow-x: auto;
-    margin: 1.5rem 0;
-    border-radius: 10px;
+    margin: 1.75rem 0;
+    border-radius: 8px;
     border: 1px solid var(--border-medium);
   }
 
   .report-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.85rem;
+    font-size: 1.05rem;
     text-align: left;
 
     th, td {
-      padding: 0.75rem 1rem;
+      padding: 0.8rem 1.2rem;
       border-bottom: 1px solid var(--border);
     }
 
@@ -951,6 +1100,8 @@ function compileTable(rows: string[]): string {
       background: rgba(33, 188, 251, 0.1);
       color: var(--primary);
       font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.9rem 1.2rem;
     }
 
     tr:nth-child(even) {
@@ -980,30 +1131,146 @@ function compileTable(rows: string[]): string {
     padding: 0 !important;
     margin: 0 !important;
   }
-  :deep(.markdown-viewer) {
-    color: #222222 !important;
+  
+  .report-brand-header {
+    border-bottom: 4px solid #0f1547 !important;
+    color: #111111 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-end !important;
+    padding-bottom: 18px !important;
+    margin-bottom: 40px !important;
+  }
+  .report-brand-header__logo {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .report-brand-header__logo .logo-main {
+    font-size: 24pt !important;
+    font-weight: 900 !important;
+    color: #0f1547 !important;
+  }
+  .report-brand-header__logo .logo-sub {
     font-size: 11pt !important;
+    font-weight: 600 !important;
+    color: #21bcfb !important;
+    text-transform: uppercase !important;
+  }
+  .report-brand-header__meta {
+    text-align: right !important;
+    font-size: 10pt !important;
+    color: #444444 !important;
+  }
+  .report-brand-header__meta .meta-title {
+    font-weight: 700 !important;
+    color: #0f1547 !important;
+  }
+  .report-brand-header__meta p {
+    color: #444444 !important;
+    margin: 0 !important;
+  }
+  
+  .report-patient-bar {
+    background: #f0f7ff !important;
+    border-left: 5px solid #21bcfb !important;
+    border-radius: 4px !important;
+    padding: 18px 24px !important;
+    margin-bottom: 40px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+  }
+  .patient-info-grid {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 12px 32px !important;
+  }
+  .patient-label {
+    display: block !important;
+    font-size: 9pt !important;
+    color: #666666 !important;
+    font-weight: 600 !important;
+    text-transform: uppercase !important;
+    margin-bottom: 2px !important;
+  }
+  .patient-name {
+    font-size: 17pt !important;
+    font-weight: 800 !important;
+    color: #0f1547 !important;
+    text-transform: capitalize !important;
+  }
+  .patient-value {
+    font-size: 12pt !important;
+    color: #333333 !important;
+    font-weight: 500 !important;
+  }
+  .confidential-badge {
+    background: #fee2e2 !important;
+    color: #c00000 !important;
+    border: 1px solid #fca5a5 !important;
+    font-size: 9pt !important;
+    font-weight: 800 !important;
+    padding: 4px 12px !important;
+    border-radius: 4px !important;
+  }
+  .report-brand-footer {
+    margin-top: 50px !important;
+    border-top: 1px solid #c8d9ee !important;
+    padding-top: 16px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    font-size: 9pt !important;
+    color: #888888 !important;
+  }
+
+  :deep(.markdown-viewer) {
+    color: #1e2229 !important;
+    font-size: 13.5pt !important;
+    line-height: 1.85 !important;
     
     h1, h2, h3, h4, strong {
       color: #000000 !important;
     }
     
     h1 {
+      font-size: 19pt !important;
       border-bottom: 2px solid #333333 !important;
+      margin: 32px 0 12px !important;
+      padding-bottom: 6px !important;
+    }
+    h2 {
+      font-size: 16pt !important;
+      margin: 26px 0 10px !important;
+    }
+    h3 {
+      font-size: 13pt !important;
+      margin: 20px 0 8px !important;
+    }
+    p {
+      margin-bottom: 12px !important;
+    }
+    li {
+      margin-bottom: 8px !important;
+      line-height: 1.8 !important;
     }
     
     .report-table-wrapper {
       border: 1px solid #999999 !important;
+      margin: 24px 0 !important;
     }
     
     .report-table {
       th {
-        background: #f0f0f0 !important;
+        background: #f0f7ff !important;
         color: #000000 !important;
         border-bottom: 2px solid #333333 !important;
+        font-size: 12pt !important;
+        padding: 12px 16px !important;
       }
       td {
         border-bottom: 1px solid #cccccc !important;
+        font-size: 11.5pt !important;
+        padding: 12px 16px !important;
       }
       tr:nth-child(even) {
         background: #fafafa !important;
@@ -1012,6 +1279,7 @@ function compileTable(rows: string[]): string {
 
     .report-divider {
       background: #cccccc !important;
+      margin: 24px 0 !important;
     }
     
     .bullet-dot {

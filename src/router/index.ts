@@ -15,9 +15,44 @@ const routes: Array<RouteRecordRaw> = [
   },
   {
     path: '/admin',
-    name: 'Admin',
     component: () => import('../views/AdminView.vue'),
     meta: { title: 'Admin', requiresAuth: true, role: 'admin' },
+    children: [
+      {
+        path: '',
+        redirect: '/admin/users'
+      },
+      {
+        path: 'users',
+        name: 'AdminUsers',
+        component: () => import('../components/admin/AdminUsers.vue'),
+        meta: { title: 'Usuarios' }
+      },
+      {
+        path: 'persons',
+        name: 'AdminPersons',
+        component: () => import('../components/admin/AdminPersons.vue'),
+        meta: { title: 'Pacientes' }
+      },
+      {
+        path: 'metrics',
+        name: 'AdminMetrics',
+        component: () => import('../components/admin/AgentMetrics.vue'),
+        meta: { title: 'Agentes GHL' }
+      },
+      {
+        path: 'metrics/:id',
+        name: 'AgentDetail',
+        component: () => import('../components/admin/AgentDetailView.vue'),
+        meta: { title: 'Detalle de Agente' }
+      },
+      {
+        path: 'info',
+        name: 'AdminInfo',
+        component: () => import('../components/admin/AdminInfo.vue'),
+        meta: { title: 'Notificaciones' }
+      }
+    ]
   },
   {
     path: '/user',
