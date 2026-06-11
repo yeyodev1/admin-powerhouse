@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Allow: /admin/
+Allow: /login
+Allow: /user/
+
+# Sitemap (reemplazar con el dominio real si es distinto)
+Sitemap: https://admin-powerhouse.netlify.app/sitemap.xml

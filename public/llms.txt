@@ -1,0 +1,11 @@
+Title: Powerhouse Biotech - Internal Admin App
+Description: Aplicación interna de administración para Powerhouse Biotech. Sistema de gestión de agentes, pacientes, reportes de laboratorio e inteligencia impulsado por CRM Bakano.
+
+[URLs]
+/ : Redirige al panel de administración o vista de login.
+/login : Autenticación de usuarios.
+/admin : Dashboard principal de administradores.
+/admin/users : Gestión de acceso y usuarios del sistema.
+/admin/persons : Gestión de pacientes, directorio e historial de tratamientos.
+/admin/metrics : Inteligencia de Agentes, KPIs y seguimiento del CRM Bakano.
+/user : Dashboard privado para usuarios internos o pacientes con archivos y perfiles médicos.
