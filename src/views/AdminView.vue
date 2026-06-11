@@ -41,7 +41,7 @@ onMounted(() => {
   <div class="admin-view">
     <nav class="admin-nav">
       <div class="admin-nav__brand">
-        <img src="https://powerhousebiotech.com/wp-content/uploads/2024/01/logo.png" alt="PowerHouse Biotech" class="admin-nav__logo" />
+        <img src="@/assets/logo/logo-powerhouse.png" alt="PowerHouse Biotech" class="admin-nav__logo" />
         <button class="mobile-menu-btn" @click="isMenuOpen = !isMenuOpen">
           <i class="fa-solid fa-bars" v-if="!isMenuOpen"></i>
           <i class="fa-solid fa-xmark" v-else></i>
@@ -119,7 +119,7 @@ onMounted(() => {
 
   &__logo {
     height: 40px;
-    filter: brightness(0) invert(1);
+    object-fit: contain;
   }
 
   &__menu {
@@ -269,7 +269,7 @@ onMounted(() => {
   transform: translateY(-10px);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .admin-nav {
     flex-direction: row;
     align-items: center;
@@ -346,7 +346,10 @@ onMounted(() => {
     border-radius: 12px;
   }
 
-  .admin-main { padding: 1rem; }
+  .admin-main { 
+    padding: 1rem; 
+    padding-top: 90px; /* Compensa la barra de navegación fija */
+  }
 }
 
 @keyframes slideDown {

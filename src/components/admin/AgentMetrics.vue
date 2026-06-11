@@ -14,6 +14,7 @@ import {
 } from 'chart.js'
 import { Bar } from 'vue-chartjs'
 import { useRouter } from 'vue-router'
+import CustomTimeFilter from './CustomTimeFilter.vue'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, PointElement, LineElement, Title, Tooltip, Legend)
 
@@ -104,11 +105,18 @@ const barChartOptions: any = {
   }
 }
 
-async function fetchMetrics() {
+// Guarda el filtro actual para el botón de refrescar
+const currentDates = ref<{ startDate?: string, endDate?: string }>({})
+
+async function fetchMetrics(dates?: { startDate: string, endDate: string }) {
+  if (dates) {
+    currentDates.value = dates
+  }
+
   loading.value = true
   error.value = ''
   try {
-    const data = await ghlService.getAgentMetrics()
+    const data = await ghlService.getAgentMetrics(currentDates.value.startDate, currentDates.value.endDate)
     agents.value = data
   } catch (e: any) {
     error.value = e.message || 'Error desconocido al cargar métricas de crm.bakano.ec'
@@ -141,10 +149,13 @@ onMounted(() => {
         </h1>
         <p class="dash-subtitle">Monitoreo en tiempo real impulsado por crm.bakano.ec</p>
       </div>
-      <button class="btn-refresh" @click="fetchMetrics" :disabled="loading">
-        <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': loading }"></i> 
-        <span>Sincronizar Datos</span>
-      </button>
+      <div class="header-actions">
+        <CustomTimeFilter @change="fetchMetrics" />
+        <button class="btn-refresh" @click="() => fetchMetrics()" :disabled="loading">
+          <i class="fa-solid fa-rotate-right" :class="{ 'fa-spin': loading }"></i> 
+          <span>Sincronizar Datos</span>
+        </button>
+      </div>
     </header>
 
     <!-- Loading State -->
@@ -158,7 +169,7 @@ onMounted(() => {
       <i class="fa-solid fa-triangle-exclamation"></i>
       <h2>Anomalía Detectada</h2>
       <p>{{ error }}</p>
-      <button class="btn-retry" @click="fetchMetrics">Reintentar Conexión</button>
+      <button class="btn-retry" @click="() => fetchMetrics()">Reintentar Conexión</button>
     </div>
 
     <!-- Main Dashboard Content -->
@@ -217,6 +228,7 @@ onMounted(() => {
                 <th>Estado</th>
                 <th>Enviados</th>
                 <th>Recibidos</th>
+                <th>T. Activo</th>
                 <th>T. Respuesta</th>
                 <th class="text-right">Acción</th>
               </tr>
@@ -242,6 +254,7 @@ onMounted(() => {
                 </td>
                 <td class="font-mono text-bright">{{ agent.messagesSent }}</td>
                 <td class="font-mono text-bright">{{ agent.messagesReceived }}</td>
+                <td class="font-mono text-bright">{{ agent.activeHours }}<span class="small-unit">h</span></td>
                 <td>
                   <span class="time-pill" :class="agent.avgResponseTimeMinutes > 30 ? 'time-warning' : 'time-good'">
                     <i class="fa-regular fa-clock"></i> {{ agent.avgResponseTimeMinutes }}m
@@ -315,6 +328,12 @@ onMounted(() => {
     flex-direction: column;
     gap: 0.5rem;
   }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .dash-title {
@@ -713,5 +732,7 @@ onMounted(() => {
   }
   .dash-subtitle { padding-left: 0; margin-top: 0.5rem; }
   .btn-refresh { width: 100%; justify-content: center; }
+  .header-actions { flex-direction: column; width: 100%; }
 }
+.small-unit { font-size: 0.8rem; color: var(--text-3); font-weight: normal; margin-left: 0.2rem; }
 </style>
