@@ -32,23 +32,27 @@ export interface AgentMetric {
   name: string;
   email: string;
   messagesSent: number;
+  messagesSentManual?: number;
+  messagesSentAutomated?: number;
   messagesReceived: number;
   avgResponseTimeMinutes: number;
   activeHours: number;
   pipeline?: AgentPipeline;
   opportunities?: AgentOpportunity[];
+  recentChats?: any[];
   status: 'online' | 'offline';
   avatar: string;
 }
 
 export const ghlService = {
-  async getAgentMetrics(startDate?: string, endDate?: string): Promise<AgentMetric[]> {
+  async getAgentMetrics(startDate?: string, endDate?: string, agentId?: string): Promise<AgentMetric[]> {
     const token = localStorage.getItem('access_token');
     
     // Configurar parámetros de query si existen fechas
     const params: any = {};
     if (startDate) params.startDate = startDate;
     if (endDate) params.endDate = endDate;
+    if (agentId) params.agentId = agentId;
 
     const response = await axios.get(`${API_URL}/ghl/metrics`, {
       headers: {
@@ -61,7 +65,7 @@ export const ghlService = {
   },
   
   async getAgentById(id: string, startDate?: string, endDate?: string): Promise<AgentMetric | null> {
-    const metrics = await this.getAgentMetrics(startDate, endDate);
-    return metrics.find((a: AgentMetric) => a.id === id) || null;
+    const metrics = await this.getAgentMetrics(startDate, endDate, id);
+    return metrics.length > 0 ? metrics[0] : null;
   }
 };

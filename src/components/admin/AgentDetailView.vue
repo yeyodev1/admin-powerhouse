@@ -190,7 +190,11 @@ const chartOptions: any = {
           <div class="stat-icon premium-gold"><i class="fa-solid fa-paper-plane"></i></div>
           <div class="stat-info">
             <span class="stat-value">{{ agent.messagesSent }}</span>
-            <span class="stat-label">Mensajes Enviados <span class="info-tooltip" data-tooltip="(Estimación) Suma de mensajes individuales (burbujas de texto) enviados dentro de los chats"><i class="fa-solid fa-circle-info"></i></span></span>
+            <span class="stat-label" style="display: flex; flex-direction: column; gap: 4px;">
+              <span>Enviados Totales <span class="info-tooltip" data-tooltip="Suma total de mensajes enviados, tanto manuales como automáticos."><i class="fa-solid fa-circle-info"></i></span></span>
+              <span style="font-size: 0.75rem; color: #c5a059; text-transform: none;"><i class="fa-solid fa-user-pen"></i> {{ agent.messagesSentManual || 0 }} Manuales</span>
+              <span style="font-size: 0.75rem; color: #21bcfb; text-transform: none;"><i class="fa-solid fa-robot"></i> {{ agent.messagesSentAutomated || 0 }} Automáticos</span>
+            </span>
           </div>
         </div>
 
@@ -258,6 +262,36 @@ const chartOptions: any = {
             <div class="stage-header"><i class="fa-solid fa-handshake"></i> Cierre</div>
             <div class="stage-metrics">
               <div class="metric highlight"><span class="label">Inicios de Tratamiento <span class="info-tooltip" data-tooltip="Oportunidades con status de CRM 'Ganado/Won' o en una etapa que contenga 'Tratamiento'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.treatmentsStarted }}</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Recent Chats Section -->
+      <section v-if="agent.recentChats && agent.recentChats.length > 0" class="chats-section glass-panel">
+        <div class="chart-header">
+          <h2>Conversaciones Recientes</h2>
+          <span class="chart-badge">Últimos {{ agent.recentChats.length }} chats</span>
+        </div>
+        
+        <div class="chats-list">
+          <div v-for="chat in agent.recentChats" :key="chat.id" class="chat-card premium-hover">
+            <div class="chat-avatar">
+              <i class="fa-solid fa-user-circle"></i>
+            </div>
+            <div class="chat-content">
+              <div class="chat-meta">
+                <h3 class="chat-name">{{ chat.name }}</h3>
+                <div style="display: flex; align-items: center; gap: 0.8rem;">
+                  <span v-if="chat.source === 'workflow' || chat.source === 'automation'" class="badge" style="font-size: 0.65rem; padding: 0.2rem 0.6rem; background: rgba(33, 188, 251, 0.1); color: #21bcfb; border: 1px solid rgba(33, 188, 251, 0.2);"><i class="fa-solid fa-robot"></i> Bot</span>
+                  <span v-else class="badge" style="font-size: 0.65rem; padding: 0.2rem 0.6rem; background: rgba(197, 160, 89, 0.1); color: #c5a059; border: 1px solid rgba(197, 160, 89, 0.2);"><i class="fa-solid fa-user-pen"></i> Asesor</span>
+                  <span class="chat-date">{{ new Date(chat.date).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' }) }}</span>
+                </div>
+              </div>
+              <p class="chat-phone"><i class="fa-solid fa-phone"></i> {{ chat.phone }}</p>
+              <p class="chat-message" v-if="chat.lastMessage">
+                <i class="fa-solid fa-comment-dots"></i> {{ chat.lastMessage }}
+              </p>
             </div>
           </div>
         </div>
@@ -794,6 +828,112 @@ const chartOptions: any = {
   font-size: 1.25rem;
   font-weight: 800;
   color: #10b981;
+}
+
+.opp-stage {
+  padding: 0.4rem 1rem;
+}
+
+/* Recent Chats Section */
+.chats-section {
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.chats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgba(33, 188, 251, 0.3);
+    border-radius: 4px;
+  }
+}
+
+.chat-card {
+  display: flex;
+  gap: 1.2rem;
+  padding: 1.2rem;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  align-items: center;
+
+  &.premium-hover:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(197, 160, 89, 0.3);
+  }
+}
+
+.chat-avatar {
+  font-size: 2.5rem;
+  color: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.chat-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.chat-name {
+  font-family: var(--font-montserrat);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-date {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.4);
+  white-space: nowrap;
+}
+
+.chat-phone {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #21bcfb;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.chat-message {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-style: italic;
 }
 
 .opp-stage {
