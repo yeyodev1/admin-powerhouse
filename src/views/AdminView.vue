@@ -97,24 +97,35 @@ onMounted(() => {
 .admin-view {
   min-height: 100vh;
   background: var(--bg);
+  overflow-x: hidden; /* Prevent horizontal scrolling from breaking layout */
+  width: 100%;
 }
+
+/* ==================================================
+   MOBILE FIRST (Default Styles)
+   ================================================== */
 
 .admin-nav {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: 0; /* Use left/right instead of width 100% to fill screen */
   z-index: 100;
+  box-sizing: border-box;
   
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  padding: 1rem 2rem;
+  padding: 1rem;
 
   &__brand {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    width: 100%;
+    z-index: 101;
   }
 
   &__logo {
@@ -124,43 +135,71 @@ onMounted(() => {
 
   &__menu {
     display: flex;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
+    margin: 0;
     gap: 2rem;
-    flex: 1;
-    justify-content: space-between;
-    margin-left: 3rem;
+    
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(13, 17, 54, 0.95);
+    backdrop-filter: blur(15px);
+    z-index: 90;
+    
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-20px);
+    transition: all 0.3s ease;
+
+    &--open {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
   }
 
   &__tabs {
     display: flex;
-    gap: 0.5rem;
+    flex-direction: column;
+    width: 100%;
+    max-width: 300px;
+    gap: 1rem;
   }
 }
 
 .mobile-menu-btn {
-  display: none;
+  display: block;
   background: transparent;
   border: none;
   color: var(--text);
   font-size: 1.5rem;
   cursor: pointer;
+  z-index: 100;
+  position: relative;
 }
 
 .tab {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
   color: var(--text-2);
   font-family: var(--font-montserrat);
   font-weight: 600;
-  font-size: 0.9rem;
   cursor: pointer;
   transition: all 0.2s ease;
   text-decoration: none;
+  border: 1px solid transparent;
+  
+  width: 100%;
+  justify-content: center;
+  padding: 1rem;
+  font-size: 1.1rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
 
   &--active {
     background: rgba(33, 188, 251, 0.1);
@@ -175,7 +214,8 @@ onMounted(() => {
 }
 
 .admin-main {
-  padding: 2rem;
+  padding: 1rem;
+  padding-top: 90px;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -187,12 +227,17 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.6rem 1.25rem;
-  border-radius: 8px;
   cursor: pointer;
   font-weight: 600;
   font-family: var(--font-montserrat);
   transition: all 0.2s ease;
+
+  width: 100%;
+  max-width: 300px;
+  justify-content: center;
+  padding: 1rem;
+  font-size: 1.1rem;
+  border-radius: 12px;
 
   &:hover {
     background: rgba(239, 68, 68, 0.2);
@@ -269,86 +314,65 @@ onMounted(() => {
   transform: translateY(-10px);
 }
 
-@media (max-width: 1024px) {
+/* ==================================================
+   DESKTOP STYLES (min-width: 1025px)
+   ================================================== */
+@media (min-width: 1025px) {
   .admin-nav {
-    flex-direction: row;
-    align-items: center;
-    padding: 1rem;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-
+    position: sticky;
+    padding: 1rem 2rem;
+    
     &__brand {
-      width: 100%;
-      z-index: 101;
+      width: auto;
     }
-
+    
     &__menu {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      margin: 0;
+      position: static;
+      flex-direction: row;
+      justify-content: space-between;
+      height: auto;
+      background: transparent;
+      backdrop-filter: none;
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      flex: 1;
+      margin-left: 3rem;
       gap: 2rem;
-      
-      /* Full screen overlay styles */
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100vh;
-      background: rgba(13, 17, 54, 0.95);
-      backdrop-filter: blur(15px);
-      z-index: 90;
-      
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-20px);
-      transition: all 0.3s ease;
-
-      &--open {
-        opacity: 1;
-        visibility: visible;
-        transform: translateY(0);
-      }
     }
-
+    
     &__tabs {
-      flex-direction: column;
-      width: 100%;
-      max-width: 300px;
-      gap: 1rem;
+      flex-direction: row;
+      max-width: none;
+      width: auto;
+      gap: 0.5rem;
     }
   }
-
+  
   .mobile-menu-btn {
-    display: block;
-    z-index: 100;
-    position: relative;
+    display: none;
   }
-
+  
   .tab {
-    width: 100%;
-    justify-content: center;
-    padding: 1rem;
-    font-size: 1.1rem;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
+    width: auto;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    background: transparent;
+    justify-content: flex-start;
   }
-
+  
   .btn-logout {
-    width: 100%;
-    max-width: 300px;
-    justify-content: center;
-    padding: 1rem;
-    font-size: 1.1rem;
-    border-radius: 12px;
+    width: auto;
+    max-width: none;
+    padding: 0.6rem 1.25rem;
+    font-size: 0.9rem;
+    border-radius: 8px;
+    justify-content: flex-start;
   }
-
-  .admin-main { 
-    padding: 1rem; 
-    padding-top: 90px; /* Compensa la barra de navegación fija */
+  
+  .admin-main {
+    padding: 2rem;
   }
 }
 

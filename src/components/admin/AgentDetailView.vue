@@ -190,7 +190,7 @@ const chartOptions: any = {
           <div class="stat-icon premium-gold"><i class="fa-solid fa-paper-plane"></i></div>
           <div class="stat-info">
             <span class="stat-value">{{ agent.messagesSent }}</span>
-            <span class="stat-label">Mensajes Enviados</span>
+            <span class="stat-label">Mensajes Enviados <span class="info-tooltip" data-tooltip="(Estimación) Suma de mensajes individuales (burbujas de texto) enviados dentro de los chats"><i class="fa-solid fa-circle-info"></i></span></span>
           </div>
         </div>
 
@@ -198,15 +198,15 @@ const chartOptions: any = {
           <div class="stat-icon premium-cyan"><i class="fa-solid fa-inbox"></i></div>
           <div class="stat-info">
             <span class="stat-value">{{ agent.messagesReceived }}</span>
-            <span class="stat-label">Mensajes Recibidos</span>
+            <span class="stat-label">Mensajes Recibidos <span class="info-tooltip" data-tooltip="(Estimación) Suma de mensajes individuales (burbujas de texto) recibidos dentro de los chats"><i class="fa-solid fa-circle-info"></i></span></span>
           </div>
         </div>
 
         <div class="stat-card glass-panel premium-hover">
-          <div class="stat-icon premium-purple"><i class="fa-solid fa-business-time"></i></div>
+          <div class="stat-icon premium-purple"><i class="fa-solid fa-briefcase"></i></div>
           <div class="stat-info">
             <span class="stat-value">{{ agent.activeHours }} <small>hrs</small></span>
-            <span class="stat-label">Tiempo Activo</span>
+            <span class="stat-label">Tiempo Activo <span class="info-tooltip" data-tooltip="Diferencia en horas entre el primer y último mensaje enviado en el periodo"><i class="fa-solid fa-circle-info"></i></span></span>
           </div>
         </div>
 
@@ -214,7 +214,7 @@ const chartOptions: any = {
           <div class="stat-icon premium-silver"><i class="fa-solid fa-stopwatch"></i></div>
           <div class="stat-info">
             <span class="stat-value">{{ agent.avgResponseTimeMinutes }} <small>min</small></span>
-            <span class="stat-label">T. Promedio de Respuesta</span>
+            <span class="stat-label">T. Promedio de Respuesta <span class="info-tooltip" data-tooltip="(Estimación) Tiempo promedio que demora la asesora en responder un mensaje nuevo"><i class="fa-solid fa-circle-info"></i></span></span>
           </div>
         </div>
       </section>
@@ -238,19 +238,19 @@ const chartOptions: any = {
             <div class="stage-header"><i class="fa-solid fa-comments"></i> Contacto</div>
             <div class="stage-metrics">
               <div class="metric"><span class="label">Llamadas (Total) <span class="info-tooltip" data-tooltip="Oportunidades en una etapa (Stage) del CRM que contenga la palabra 'Llamada'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.calls }}</span></div>
-              <div class="metric"><span class="label">Llamadas Resp. <span class="info-tooltip" data-tooltip="Requiere mapear el nombre exacto de la etapa en el CRM (actualmente es un cálculo de prueba)"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.answeredCalls }}</span></div>
-              <div class="metric"><span class="label">WhatsApp <span class="info-tooltip" data-tooltip="Suma de las conversaciones en CRM cuyo canal de origen es WhatsApp, SMS o Chat"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.whatsapp }}</span></div>
-              <div class="metric"><span class="label">E-mail <span class="info-tooltip" data-tooltip="Suma de las conversaciones en CRM cuyo canal de origen es Email"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.email }}</span></div>
+              <div class="metric"><span class="label">Llamadas Resp. <span class="info-tooltip" data-tooltip="Oportunidades en una etapa del CRM que contenga 'Llamada' y además 'Contest', 'Respond' o 'Efectiva'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.answeredCalls }}</span></div>
+              <div class="metric"><span class="label">Chats de WhatsApp <span class="info-tooltip" data-tooltip="Suma de conversaciones distintas (hilos de chat) cuyo canal de origen es WhatsApp, SMS o Live Chat"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.whatsapp }}</span></div>
+              <div class="metric"><span class="label">Hilos de E-mail <span class="info-tooltip" data-tooltip="Suma de conversaciones distintas (hilos de correo) cuyo canal de origen es Email"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.email }}</span></div>
             </div>
           </div>
 
           <div class="pipeline-stage stage-appointment">
             <div class="stage-header"><i class="fa-regular fa-calendar-check"></i> Citas</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Info Agendadas <span class="info-tooltip" data-tooltip="Oportunidades en una etapa del CRM que contenga 'Cita' o 'Agend'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsScheduled }}</span></div>
-              <div class="metric"><span class="label">Info Asistidas <span class="info-tooltip" data-tooltip="Requiere mapear el nombre exacto de la etapa de asistencia en el CRM (actualmente es prueba)"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsAttended }}</span></div>
-              <div class="metric"><span class="label">Pres. Agendadas <span class="info-tooltip" data-tooltip="A la espera de definir la etapa de citas presenciales en el CRM"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsScheduled }}</span></div>
-              <div class="metric"><span class="label">Pres. Asistidas <span class="info-tooltip" data-tooltip="A la espera de definir la etapa de asistencias presenciales en el CRM"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsAttended }}</span></div>
+              <div class="metric"><span class="label">Info Agendadas <span class="info-tooltip" data-tooltip="Oportunidades en etapa de CRM que contenga 'Cita' o 'Agend', pero NO 'Presencial' ni 'Física'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsScheduled }}</span></div>
+              <div class="metric"><span class="label">Info Asistidas <span class="info-tooltip" data-tooltip="Citas informativas cuya etapa del CRM contiene adicionalmente 'Asisti' o 'Show'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsAttended }}</span></div>
+              <div class="metric"><span class="label">Pres. Agendadas <span class="info-tooltip" data-tooltip="Oportunidades en etapa de CRM que contenga 'Cita' o 'Agend', y ADEMÁS 'Presencial' o 'Física'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsScheduled }}</span></div>
+              <div class="metric"><span class="label">Pres. Asistidas <span class="info-tooltip" data-tooltip="Citas presenciales cuya etapa del CRM contiene adicionalmente 'Asisti' o 'Show'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsAttended }}</span></div>
             </div>
           </div>
 
@@ -519,6 +519,7 @@ const chartOptions: any = {
   align-items: center;
   gap: 1.5rem;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  overflow: visible !important; /* Prevent tooltip clipping if glass-panel has overflow hidden */
 
   &.premium-hover:hover {
     transform: translateY(-5px);
@@ -664,7 +665,7 @@ const chartOptions: any = {
     white-space: normal;
     min-width: 150px;
     width: max-content;
-    max-width: 200px;
+    max-width: 250px;
     text-align: center;
     border: 1px solid rgba(33, 188, 251, 0.3);
     box-shadow: 0 4px 15px rgba(0,0,0,0.5);
@@ -672,6 +673,12 @@ const chartOptions: any = {
     pointer-events: none;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 100;
+    
+    /* Reset inherited styles from labels */
+    text-transform: none;
+    letter-spacing: normal;
+    font-weight: 500;
+    line-height: 1.4;
   }
   
   &:hover::after {
@@ -884,5 +891,31 @@ const chartOptions: any = {
 
   .premium-seal { padding-bottom: 0; padding-top: 1rem; }
   .company-logo { top: 1rem; right: 1rem; height: 35px; }
+}
+
+@media (max-width: 768px) {
+  .stage-group-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  
+  .opp-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1.2rem;
+  }
+  
+  .opp-meta {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .chart-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
 }
 </style>
