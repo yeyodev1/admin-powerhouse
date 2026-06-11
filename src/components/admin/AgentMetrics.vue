@@ -161,8 +161,10 @@ onMounted(() => {
     <header class="dash-header">
       <div class="dash-header__titles">
         <h1 class="dash-title">
-          <span class="icon-wrap"><i class="fa-solid fa-chart-pie"></i></span>
-          Inteligencia de Agentes
+          <div class="dash-title__main">
+            <span class="icon-wrap"><i class="fa-solid fa-chart-pie"></i></span>
+            <span>Inteligencia de Agentes</span>
+          </div>
           <div class="alliance-tag">
             <i class="fa-solid fa-xmark"></i>
             <img src="@/assets/logo/logo-bakano.png" alt="Bakano" class="alliance-logo" />
@@ -400,74 +402,133 @@ onMounted(() => {
    ───────────────────────────────────────────────────────── */
 .dash-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 1.5rem;
   margin-bottom: 2.5rem;
   padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-end;
+  }
 
   &__titles {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    width: 100%;
   }
 }
 
 .header-actions {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 1rem;
+  width: 100%;
+
+  @media (min-width: 1024px) {
+    flex-direction: row;
+    align-items: center;
+    width: auto;
+  }
 }
 
 .dash-title {
   font-family: var(--font-montserrat);
-  font-size: 2.2rem;
-  font-weight: 800;
-  color: #fff;
   margin: 0;
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
   letter-spacing: -0.02em;
+
+  @media (min-width: 768px) {
+    flex-direction: row;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  &__main {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+
+    @media (min-width: 768px) {
+      font-size: 2.2rem;
+      gap: 1rem;
+    }
+  }
 
   .icon-wrap {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 48px;
-    height: 48px;
+    width: 40px;
+    height: 40px;
     background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
-    border-radius: 14px;
-    font-size: 1.4rem;
+    border-radius: 12px;
+    font-size: 1.2rem;
     color: #fff;
     box-shadow: 0 4px 15px rgba(33, 188, 251, 0.3);
+    flex-shrink: 0;
+
+    @media (min-width: 768px) {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      font-size: 1.4rem;
+    }
   }
 }
 
 .alliance-tag {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-left: 0.5rem;
-  padding: 0.4rem 1rem;
+  gap: 0.5rem;
+  margin-left: 0;
+  padding: 0.3rem 0.8rem;
   background: rgba(255,255,255,0.03);
   border-radius: 50px;
   border: 1px solid rgba(255,255,255,0.05);
   
-  i { font-size: 0.8rem; color: var(--text-3); }
+  @media (min-width: 768px) {
+    margin-left: 0.5rem;
+    gap: 0.75rem;
+    padding: 0.4rem 1rem;
+  }
+  
+  i { font-size: 0.7rem; color: var(--text-3); @media(min-width: 768px) { font-size: 0.8rem; } }
 }
 
 .alliance-logo {
-  height: 20px;
+  height: 16px;
   object-fit: contain;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+  
+  @media (min-width: 768px) {
+    height: 20px;
+  }
 }
 
 .dash-subtitle {
   color: var(--text-2);
-  font-size: 1.05rem;
+  font-size: 0.9rem;
   margin: 0;
-  padding-left: 4.5rem;
+  padding-left: 0;
+
+  @media (min-width: 768px) {
+    font-size: 1.05rem;
+    padding-left: 4.5rem;
+  }
 }
 
 .btn-refresh {
