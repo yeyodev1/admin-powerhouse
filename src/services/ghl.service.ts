@@ -14,6 +14,8 @@ export interface AgentPipeline {
   presentialAppointmentsScheduled: number;
   presentialAppointmentsAttended: number;
   treatmentsStarted: number;
+  totalMonetaryValue: number;
+  wonOpportunities: number;
 }
 
 export interface AgentOpportunity {
@@ -32,7 +34,7 @@ export interface AgentMetric {
   messagesSent: number;
   messagesReceived: number;
   avgResponseTimeMinutes: number;
-  activeHours?: number;
+  activeHours: number;
   pipeline?: AgentPipeline;
   opportunities?: AgentOpportunity[];
   status: 'online' | 'offline';

@@ -24,6 +24,27 @@ const agents = ref<AgentMetric[]>([])
 
 const router = useRouter()
 
+// Top 5 Ranking Logic
+type RankingMode = 'leads' | 'income' | 'treatments';
+const currentRankingMode = ref<RankingMode>('leads');
+
+const top5Agents = computed(() => {
+  return [...agents.value].sort((a, b) => {
+    if (currentRankingMode.value === 'leads') {
+      return (b.pipeline?.leads || 0) - (a.pipeline?.leads || 0);
+    } else if (currentRankingMode.value === 'income') {
+      return (b.pipeline?.totalMonetaryValue || 0) - (a.pipeline?.totalMonetaryValue || 0);
+    } else if (currentRankingMode.value === 'treatments') {
+      return (b.pipeline?.wonOpportunities || 0) - (a.pipeline?.wonOpportunities || 0);
+    }
+    return 0;
+  }).slice(0, 5);
+});
+
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val);
+}
+
 const totalMessages = computed(() => {
   return agents.value.reduce((acc, curr) => acc + curr.messagesSent + curr.messagesReceived, 0)
 })
@@ -214,6 +235,68 @@ onMounted(() => {
           <Bar :data="barChartData" :options="barChartOptions" />
         </div>
       </section>
+
+      <!-- Top 5 Ranking Section -->
+    <section class="top-ranking-section" v-if="agents.length > 0">
+      <div class="ranking-header">
+        <div class="ranking-title">
+          <i class="fa-solid fa-trophy premium-gold-text"></i>
+          <h2>Top 5 Mejores Asesoras</h2>
+        </div>
+        <div class="ranking-tabs">
+          <button 
+            :class="['ranking-tab', { active: currentRankingMode === 'leads' }]" 
+            @click="currentRankingMode = 'leads'">
+            <i class="fa-solid fa-users"></i> Volumen (Leads)
+          </button>
+          <button 
+            :class="['ranking-tab', { active: currentRankingMode === 'income' }]" 
+            @click="currentRankingMode = 'income'">
+            <i class="fa-solid fa-sack-dollar"></i> Ingresos ($)
+          </button>
+          <button 
+            :class="['ranking-tab', { active: currentRankingMode === 'treatments' }]" 
+            @click="currentRankingMode = 'treatments'">
+            <i class="fa-solid fa-star"></i> Cierres (Ganados)
+          </button>
+        </div>
+      </div>
+
+      <div class="ranking-list">
+        <div v-for="(agent, index) in top5Agents" :key="agent.id" class="ranking-card glass-panel premium-hover" @click="openAgentDetail(agent)">
+          <div class="rank-position" :class="'rank-' + (index + 1)">
+            <span v-if="index === 0"><i class="fa-solid fa-medal"></i> 1</span>
+            <span v-else-if="index === 1"><i class="fa-solid fa-medal"></i> 2</span>
+            <span v-else-if="index === 2"><i class="fa-solid fa-medal"></i> 3</span>
+            <span v-else>#{{ index + 1 }}</span>
+          </div>
+          
+          <img :src="agent.avatar" alt="avatar" class="rank-avatar" />
+          
+          <div class="rank-info">
+            <h3 class="rank-name">{{ agent.name }}</h3>
+            <span class="rank-status" :class="agent.status">
+              {{ agent.status === 'online' ? 'Online' : 'Offline' }}
+            </span>
+          </div>
+
+          <div class="rank-metric">
+            <template v-if="currentRankingMode === 'leads'">
+              <span class="metric-value">{{ agent.pipeline?.leads || 0 }}</span>
+              <span class="metric-label">Leads</span>
+            </template>
+            <template v-else-if="currentRankingMode === 'income'">
+              <span class="metric-value highlight">{{ formatCurrency(agent.pipeline?.totalMonetaryValue || 0) }}</span>
+              <span class="metric-label">Ingresos Brutos</span>
+            </template>
+            <template v-else-if="currentRankingMode === 'treatments'">
+              <span class="metric-value won">{{ agent.pipeline?.wonOpportunities || 0 }}</span>
+              <span class="metric-label">Tratamientos</span>
+            </template>
+          </div>
+        </div>
+      </div>
+    </section>
 
       <!-- Table Section -->
       <section class="table-section glass-panel">
@@ -735,4 +818,153 @@ onMounted(() => {
   .header-actions { flex-direction: column; width: 100%; }
 }
 .small-unit { font-size: 0.8rem; color: var(--text-3); font-weight: normal; margin-left: 0.2rem; }
+/* Ranking Section */
+.top-ranking-section {
+  margin-top: 1rem;
+  margin-bottom: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ranking-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.ranking-title {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  
+  i { font-size: 1.6rem; color: #D4AF37; }
+  h2 { font-family: var(--font-montserrat); font-size: 1.5rem; font-weight: 700; color: #fff; margin: 0; }
+}
+
+.ranking-tabs {
+  display: flex;
+  gap: 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.3rem;
+  border-radius: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ranking-tab {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-family: var(--font-montserrat);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  
+  &:hover { color: #fff; }
+  &.active {
+    background: rgba(33, 188, 251, 0.2);
+    color: #21bcfb;
+    border: 1px solid rgba(33, 188, 251, 0.3);
+  }
+}
+
+.ranking-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+}
+
+.ranking-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.2rem;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: transform 0.3s ease, border-color 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-5px);
+    border-color: rgba(212, 175, 55, 0.4);
+  }
+}
+
+.rank-position {
+  font-size: 1.2rem;
+  font-weight: 800;
+  width: 40px;
+  text-align: center;
+  
+  &.rank-1 { color: #FFD700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+  &.rank-2 { color: #C0C0C0; text-shadow: 0 0 10px rgba(192, 192, 192, 0.4); }
+  &.rank-3 { color: #CD7F32; text-shadow: 0 0 10px rgba(205, 127, 50, 0.4); }
+  &:not(.rank-1):not(.rank-2):not(.rank-3) { color: rgba(255, 255, 255, 0.3); font-size: 1rem; }
+}
+
+.rank-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.rank-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.rank-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.rank-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  &.online { color: #10b981; }
+  &.offline { color: rgba(255, 255, 255, 0.4); }
+}
+
+.rank-metric {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+}
+
+.metric-value {
+  font-family: var(--font-montserrat);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  
+  &.highlight { color: #c5a059; }
+  &.won { color: #10b981; }
+}
+
+.metric-label {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+@media (max-width: 768px) {
+  .ranking-header { flex-direction: column; align-items: flex-start; }
+  .ranking-tabs { width: 100%; overflow-x: auto; }
+  .ranking-tab { flex: 1; white-space: nowrap; justify-content: center; }
+}
+
 </style>

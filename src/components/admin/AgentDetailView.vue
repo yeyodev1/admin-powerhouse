@@ -230,34 +230,34 @@ const chartOptions: any = {
           <div class="pipeline-stage stage-attract">
             <div class="stage-header"><i class="fa-solid fa-magnet"></i> Atracción</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Leads</span><span class="value">{{ agent.pipeline.leads }}</span></div>
+              <div class="metric"><span class="label">Leads <span class="info-tooltip" data-tooltip="Total de oportunidades activas gestionadas en este periodo"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.leads }}</span></div>
             </div>
           </div>
           
           <div class="pipeline-stage stage-contact">
             <div class="stage-header"><i class="fa-solid fa-comments"></i> Contacto</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Llamadas (Total)</span><span class="value">{{ agent.pipeline.calls }}</span></div>
-              <div class="metric"><span class="label">Llamadas Resp.</span><span class="value">{{ agent.pipeline.answeredCalls }}</span></div>
-              <div class="metric"><span class="label">WhatsApp</span><span class="value">{{ agent.pipeline.whatsapp }}</span></div>
-              <div class="metric"><span class="label">E-mail</span><span class="value">{{ agent.pipeline.email }}</span></div>
+              <div class="metric"><span class="label">Llamadas (Total) <span class="info-tooltip" data-tooltip="Oportunidades que pasaron por la etapa de 'Llamada'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.calls }}</span></div>
+              <div class="metric"><span class="label">Llamadas Resp. <span class="info-tooltip" data-tooltip="Estimación de llamadas contestadas exitosamente"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.answeredCalls }}</span></div>
+              <div class="metric"><span class="label">WhatsApp <span class="info-tooltip" data-tooltip="Interacciones rápidas y mensajes de WhatsApp leídos desde GHL"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.whatsapp }}</span></div>
+              <div class="metric"><span class="label">E-mail <span class="info-tooltip" data-tooltip="Correos electrónicos enviados a los prospectos"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.email }}</span></div>
             </div>
           </div>
 
           <div class="pipeline-stage stage-appointment">
             <div class="stage-header"><i class="fa-regular fa-calendar-check"></i> Citas</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Info Agendadas</span><span class="value">{{ agent.pipeline.infoAppointmentsScheduled }}</span></div>
-              <div class="metric"><span class="label">Info Asistidas</span><span class="value">{{ agent.pipeline.infoAppointmentsAttended }}</span></div>
-              <div class="metric"><span class="label">Pres. Agendadas</span><span class="value">{{ agent.pipeline.presentialAppointmentsScheduled }}</span></div>
-              <div class="metric"><span class="label">Pres. Asistidas</span><span class="value">{{ agent.pipeline.presentialAppointmentsAttended }}</span></div>
+              <div class="metric"><span class="label">Info Agendadas <span class="info-tooltip" data-tooltip="Citas informativas programadas en la agenda"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsScheduled }}</span></div>
+              <div class="metric"><span class="label">Info Asistidas <span class="info-tooltip" data-tooltip="Citas informativas a las que el prospecto asistió"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsAttended }}</span></div>
+              <div class="metric"><span class="label">Pres. Agendadas <span class="info-tooltip" data-tooltip="Citas presenciales (en clínica) agendadas"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsScheduled }}</span></div>
+              <div class="metric"><span class="label">Pres. Asistidas <span class="info-tooltip" data-tooltip="Prospectos que asistieron a la cita presencial"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsAttended }}</span></div>
             </div>
           </div>
 
           <div class="pipeline-stage stage-close">
             <div class="stage-header"><i class="fa-solid fa-handshake"></i> Cierre</div>
             <div class="stage-metrics">
-              <div class="metric highlight"><span class="label">Inicios de Tratamiento</span><span class="value">{{ agent.pipeline.treatmentsStarted }}</span></div>
+              <div class="metric highlight"><span class="label">Inicios de Tratamiento <span class="info-tooltip" data-tooltip="Oportunidades marcadas como Ganadas (Won) o en Tratamiento"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.treatmentsStarted }}</span></div>
             </div>
           </div>
         </div>
@@ -559,7 +559,6 @@ const chartOptions: any = {
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(255, 255, 255, 0.05);
   border-radius: 16px;
-  overflow: hidden;
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
 
   &:hover {
@@ -579,6 +578,8 @@ const chartOptions: any = {
   text-transform: uppercase;
   font-size: 0.85rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-top-left-radius: 15px;
+  border-top-right-radius: 15px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -611,10 +612,11 @@ const chartOptions: any = {
 
   &:hover { background: rgba(255, 255, 255, 0.05); }
   
-  .label {
-    font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.6);
-    font-weight: 600;
+  .label { 
+    font-size: 0.85rem; 
+    color: rgba(255, 255, 255, 0.6); 
+    display: flex;
+    align-items: center;
   }
   
   .value {
@@ -627,10 +629,54 @@ const chartOptions: any = {
   &.highlight {
     background: rgba(197, 160, 89, 0.1);
     border: 1px solid rgba(197, 160, 89, 0.3);
+    border-radius: 8px;
     padding: 1rem 0.8rem;
     
     .label { color: #c5a059; font-weight: 700; font-size: 0.85rem; }
     .value { color: #c5a059; font-size: 1.6rem; text-shadow: 0 0 10px rgba(197, 160, 89, 0.4); }
+  }
+}
+
+/* Tooltips */
+.info-tooltip {
+  position: relative;
+  cursor: help;
+  color: rgba(33, 188, 251, 0.6);
+  margin-left: 6px;
+  font-size: 0.8rem;
+  transition: color 0.2s ease;
+
+  &:hover {
+    color: #21bcfb;
+  }
+
+  &::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 150%;
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background: rgba(11, 12, 16, 0.95);
+    color: #fff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: normal;
+    min-width: 150px;
+    width: max-content;
+    max-width: 200px;
+    text-align: center;
+    border: 1px solid rgba(33, 188, 251, 0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 100;
+  }
+  
+  &:hover::after {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
   }
 }
 
