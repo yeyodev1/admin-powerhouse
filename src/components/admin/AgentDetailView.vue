@@ -59,6 +59,36 @@ const handleFilterChange = (dates: { startDate: string, endDate: string }) => {
   fetchAgent(dates)
 }
 
+const getStageClass = (stageName: string) => {
+  if (stageName.includes('Atracción')) return 'tag-cyan'
+  if (stageName.includes('Contacto')) return 'tag-purple'
+  if (stageName.includes('Cita')) return 'tag-silver'
+  if (stageName.includes('Cierre') || stageName.includes('Tratamiento')) return 'tag-gold'
+  return 'tag-blue'
+}
+
+const formatCurrency = (value: number) => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+}
+
+const groupedOpportunities = computed(() => {
+  if (!agent.value?.opportunities) return []
+  
+  const groups: Record<string, { stageName: string, total: number, count: number, opps: any[] }> = {}
+  
+  agent.value.opportunities.forEach(opp => {
+    const stage = opp.pipelineStageName || 'Desconocido'
+    if (!groups[stage]) {
+      groups[stage] = { stageName: stage, total: 0, count: 0, opps: [] }
+    }
+    groups[stage].count++
+    groups[stage].total += Number(opp.monetaryValue) || 0
+    groups[stage].opps.push(opp)
+  })
+  
+  return Object.values(groups).sort((a, b) => b.total - a.total)
+})
+
 // Premium Chart Config: Gold & Cyan
 const chartData = computed(() => {
   if (!agent.value) return { labels: [], datasets: [] }
@@ -228,6 +258,44 @@ const chartOptions: any = {
             <div class="stage-header"><i class="fa-solid fa-handshake"></i> Cierre</div>
             <div class="stage-metrics">
               <div class="metric highlight"><span class="label">Inicios de Tratamiento</span><span class="value">{{ agent.pipeline.treatmentsStarted }}</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Opportunities Section -->
+      <section v-if="agent.opportunities && agent.opportunities.length > 0" class="opportunities-section glass-panel">
+        <div class="chart-header">
+          <h2>Oportunidades Activas por Etapa</h2>
+          <span class="chart-badge">CRM Leads</span>
+        </div>
+        
+        <div class="opportunities-stages">
+          <div v-for="group in groupedOpportunities" :key="group.stageName" class="stage-group">
+            <div class="stage-group-header">
+              <h3 class="group-title" :class="getStageClass(group.stageName)">
+                {{ group.stageName }} <span class="group-count">({{ group.count }})</span>
+              </h3>
+              <div class="group-total">{{ formatCurrency(group.total) }}</div>
+            </div>
+
+            <div class="opportunities-list">
+              <div v-for="opp in group.opps" :key="opp.id" class="opp-card glass-panel premium-hover">
+                <div class="opp-info">
+                  <h3 class="opp-name">{{ opp.name }}</h3>
+                  <p class="opp-date"><i class="fa-regular fa-calendar"></i> Creado: {{ new Date(opp.createdAt).toLocaleDateString() }}</p>
+                </div>
+                
+                <div class="opp-meta">
+                  <span class="opp-value">{{ formatCurrency(Number(opp.monetaryValue) || 0) }}</span>
+                  <span class="opp-status" :class="opp.status">
+                    <i v-if="opp.status === 'open'" class="fa-solid fa-circle-dot fa-fade" style="color: #21bcfb;"></i>
+                    <i v-else-if="opp.status === 'won'" class="fa-solid fa-check-circle"></i>
+                    <i v-else class="fa-solid fa-xmark-circle"></i>
+                    {{ opp.status === 'open' ? 'En Seguimiento' : (opp.status === 'won' ? 'Ganado' : 'Perdido') }}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -564,6 +632,144 @@ const chartOptions: any = {
     .label { color: #c5a059; font-weight: 700; font-size: 0.85rem; }
     .value { color: #c5a059; font-size: 1.6rem; text-shadow: 0 0 10px rgba(197, 160, 89, 0.4); }
   }
+}
+
+.opportunities-section {
+  padding: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.opportunities-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.stage-group-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.group-title {
+  font-family: var(--font-montserrat);
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #fff;
+  
+  &.tag-cyan { color: #21bcfb; }
+  &.tag-purple { color: #a855f7; }
+  &.tag-silver { color: #94a3b8; }
+  &.tag-gold { color: #c5a059; }
+  &.tag-blue { color: #3b82f6; }
+}
+
+.group-count {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-weight: 500;
+}
+
+.group-total {
+  font-family: var(--font-montserrat);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.opportunities-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.opp-card {
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.3s ease;
+
+  &.premium-hover:hover {
+    transform: translateX(5px);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(33, 188, 251, 0.3);
+  }
+}
+
+.opp-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.opp-name {
+  font-family: var(--font-montserrat);
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.opp-date {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.opp-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.opp-value {
+  font-family: var(--font-montserrat);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #10b981;
+}
+
+.opp-stage {
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: rgba(255, 255, 255, 0.05);
+  
+  &.tag-cyan { color: #21bcfb; border: 1px solid rgba(33,188,251,0.3); background: rgba(33,188,251,0.1); }
+  &.tag-purple { color: #a855f7; border: 1px solid rgba(168,85,247,0.3); background: rgba(168,85,247,0.1); }
+  &.tag-silver { color: #94a3b8; border: 1px solid rgba(148,163,184,0.3); background: rgba(148,163,184,0.1); }
+  &.tag-gold { color: #c5a059; border: 1px solid rgba(197,160,89,0.3); background: rgba(197,160,89,0.1); }
+  &.tag-blue { color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); }
+}
+
+.opp-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 100px;
+  
+  &.open { color: #21bcfb; }
+  &.won { color: #10b981; }
+  &.lost { color: #ef4444; }
 }
 
 /* Chart Section */
