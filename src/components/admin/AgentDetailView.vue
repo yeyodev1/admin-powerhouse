@@ -230,34 +230,34 @@ const chartOptions: any = {
           <div class="pipeline-stage stage-attract">
             <div class="stage-header"><i class="fa-solid fa-magnet"></i> Atracción</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Leads <span class="info-tooltip" data-tooltip="Total de oportunidades activas gestionadas en este periodo"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.leads }}</span></div>
+              <div class="metric"><span class="label">Leads <span class="info-tooltip" data-tooltip="Total de Oportunidades asociadas a la asesora en el CRM"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.leads }}</span></div>
             </div>
           </div>
           
           <div class="pipeline-stage stage-contact">
             <div class="stage-header"><i class="fa-solid fa-comments"></i> Contacto</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Llamadas (Total) <span class="info-tooltip" data-tooltip="Oportunidades que pasaron por la etapa de 'Llamada'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.calls }}</span></div>
-              <div class="metric"><span class="label">Llamadas Resp. <span class="info-tooltip" data-tooltip="Estimación de llamadas contestadas exitosamente"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.answeredCalls }}</span></div>
-              <div class="metric"><span class="label">WhatsApp <span class="info-tooltip" data-tooltip="Interacciones rápidas y mensajes de WhatsApp leídos desde GHL"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.whatsapp }}</span></div>
-              <div class="metric"><span class="label">E-mail <span class="info-tooltip" data-tooltip="Correos electrónicos enviados a los prospectos"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.email }}</span></div>
+              <div class="metric"><span class="label">Llamadas (Total) <span class="info-tooltip" data-tooltip="Oportunidades en una etapa (Stage) del CRM que contenga la palabra 'Llamada'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.calls }}</span></div>
+              <div class="metric"><span class="label">Llamadas Resp. <span class="info-tooltip" data-tooltip="Requiere mapear el nombre exacto de la etapa en el CRM (actualmente es un cálculo de prueba)"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.answeredCalls }}</span></div>
+              <div class="metric"><span class="label">WhatsApp <span class="info-tooltip" data-tooltip="Suma de las conversaciones en CRM cuyo canal de origen es WhatsApp, SMS o Chat"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.whatsapp }}</span></div>
+              <div class="metric"><span class="label">E-mail <span class="info-tooltip" data-tooltip="Suma de las conversaciones en CRM cuyo canal de origen es Email"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.email }}</span></div>
             </div>
           </div>
 
           <div class="pipeline-stage stage-appointment">
             <div class="stage-header"><i class="fa-regular fa-calendar-check"></i> Citas</div>
             <div class="stage-metrics">
-              <div class="metric"><span class="label">Info Agendadas <span class="info-tooltip" data-tooltip="Citas informativas programadas en la agenda"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsScheduled }}</span></div>
-              <div class="metric"><span class="label">Info Asistidas <span class="info-tooltip" data-tooltip="Citas informativas a las que el prospecto asistió"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsAttended }}</span></div>
-              <div class="metric"><span class="label">Pres. Agendadas <span class="info-tooltip" data-tooltip="Citas presenciales (en clínica) agendadas"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsScheduled }}</span></div>
-              <div class="metric"><span class="label">Pres. Asistidas <span class="info-tooltip" data-tooltip="Prospectos que asistieron a la cita presencial"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsAttended }}</span></div>
+              <div class="metric"><span class="label">Info Agendadas <span class="info-tooltip" data-tooltip="Oportunidades en una etapa del CRM que contenga 'Cita' o 'Agend'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsScheduled }}</span></div>
+              <div class="metric"><span class="label">Info Asistidas <span class="info-tooltip" data-tooltip="Requiere mapear el nombre exacto de la etapa de asistencia en el CRM (actualmente es prueba)"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.infoAppointmentsAttended }}</span></div>
+              <div class="metric"><span class="label">Pres. Agendadas <span class="info-tooltip" data-tooltip="A la espera de definir la etapa de citas presenciales en el CRM"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsScheduled }}</span></div>
+              <div class="metric"><span class="label">Pres. Asistidas <span class="info-tooltip" data-tooltip="A la espera de definir la etapa de asistencias presenciales en el CRM"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.presentialAppointmentsAttended }}</span></div>
             </div>
           </div>
 
           <div class="pipeline-stage stage-close">
             <div class="stage-header"><i class="fa-solid fa-handshake"></i> Cierre</div>
             <div class="stage-metrics">
-              <div class="metric highlight"><span class="label">Inicios de Tratamiento <span class="info-tooltip" data-tooltip="Oportunidades marcadas como Ganadas (Won) o en Tratamiento"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.treatmentsStarted }}</span></div>
+              <div class="metric highlight"><span class="label">Inicios de Tratamiento <span class="info-tooltip" data-tooltip="Oportunidades con status de CRM 'Ganado/Won' o en una etapa que contenga 'Tratamiento'"><i class="fa-solid fa-circle-info"></i></span></span><span class="value">{{ agent.pipeline.treatmentsStarted }}</span></div>
             </div>
           </div>
         </div>
