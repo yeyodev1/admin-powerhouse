@@ -276,12 +276,11 @@ onMounted(async () => {
 
 <template>
   <div class="agent-dashboard">
-    <!-- Background -->
-    <div class="agent-dashboard__bg">
-      <video autoplay muted loop playsinline class="agent-dashboard__video">
-        <source src="https://icdlabs.in/immune-internal/wp-content/themes/immuneel/assets/videos/DNA.mp4" type="video/mp4" />
-      </video>
-      <div class="agent-dashboard__overlay"></div>
+    <!-- Premium Background -->
+    <div class="premium-bg">
+      <div class="premium-bg__orb premium-bg__orb--1"></div>
+      <div class="premium-bg__orb premium-bg__orb--2"></div>
+      <div class="premium-bg__grid"></div>
     </div>
 
     <!-- Auth check -->
@@ -295,7 +294,7 @@ onMounted(async () => {
       <!-- ── Header ── -->
       <header class="topbar">
         <div class="topbar__brand">
-          <img src="https://powerhousebiotech.com/wp-content/uploads/2024/01/logo.png" alt="PowerHouse Biotech" class="topbar__logo" />
+          <img src="@/assets/logo/logo-powerhouse.png" alt="PowerHouse Biotech" class="topbar__logo" />
           <span class="topbar__badge">Panel de Agentes</span>
         </div>
         <div class="topbar__meta">
@@ -661,18 +660,8 @@ onMounted(async () => {
 .agent-dashboard {
   position: relative;
   min-height: 100vh;
-
-  &__bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    .agent-dashboard__video { width: 100%; height: 100%; object-fit: cover; }
-    .agent-dashboard__overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(23, 24, 70, 0.94) 0%, rgba(40, 54, 69, 0.90) 100%);
-    }
-  }
+  background-color: #050505;
+  color: #ffffff;
 
   &__loading {
     position: relative;
@@ -694,6 +683,54 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
   }
+}
+
+/* --- Premium Background --- */
+.premium-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+
+  &__orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.25;
+    animation: pulseOrb 15s infinite alternate;
+
+    &--1 {
+      width: 500px;
+      height: 500px;
+      background: #21BCFB;
+      top: -100px;
+      left: -100px;
+    }
+
+    &--2 {
+      width: 600px;
+      height: 600px;
+      background: #1278F3;
+      bottom: -200px;
+      right: -100px;
+      animation-delay: -5s;
+    }
+  }
+
+  &__grid {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(circle at center, black 40%, transparent 100%);
+  }
+}
+
+@keyframes pulseOrb {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.15; }
+  100% { transform: scale(1.1) translate(20px, 20px); opacity: 0.3; }
 }
 
 // ── Topbar ──

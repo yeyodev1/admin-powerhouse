@@ -40,7 +40,7 @@ async function submitPerson(data: PersonData) {
     personModalOpen.value = false
     await loadPersons()
   } catch (e: any) {
-    alert(e?.response?.data?.message || 'Error al guardar persona')
+    alert(e?.response?.data?.message || 'Error al guardar paciente')
   }
 }
 
@@ -56,7 +56,7 @@ async function executePersonDelete() {
       await loadPersons()
     }
   } catch (e: any) {
-    alert(e?.response?.data?.message || 'Error al eliminar persona')
+    alert(e?.response?.data?.message || 'Error al eliminar paciente')
   }
 }
 
@@ -98,49 +98,55 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-persons">
+  <div class="admin-persons fade-in">
     <div class="tab-header">
-      <h2 class="tab-title">Gestión de Pacientes</h2>
-      <button class="btn btn-primary" @click="openPersonCreate">+ Agregar paciente</button>
+      <div class="header-titles">
+        <h2 class="tab-title">Gestión de Pacientes</h2>
+        <p class="tab-subtitle">Directorio e historial de tratamientos</p>
+      </div>
+      <button class="btn-primary" @click="openPersonCreate">
+        <i class="fa-solid fa-plus"></i>
+        <span>Agregar paciente</span>
+      </button>
     </div>
 
-    <div class="table-wrap">
-      <table class="table">
+    <div class="table-wrap glass-card">
+      <table class="premium-table">
         <thead>
           <tr>
-            <th>Nombre</th>
+            <th>Nombre del Paciente</th>
             <th>Email</th>
             <th>Teléfono</th>
-            <th>Fecha creación</th>
-            <th>Acciones</th>
+            <th>Fecha de registro</th>
+            <th class="text-right">Acciones</th>
           </tr>
         </thead>
         <tbody v-if="loading">
           <tr v-for="i in 5" :key="'skel-' + i">
-            <td><div class="skeleton-line skeleton-line--short"></div></td>
             <td><div class="skeleton-line skeleton-line--long"></div></td>
             <td><div class="skeleton-line skeleton-line--medium"></div></td>
             <td><div class="skeleton-line skeleton-line--medium"></div></td>
-            <td><div class="skeleton-line skeleton-line--actions"></div></td>
+            <td><div class="skeleton-line skeleton-line--short"></div></td>
+            <td class="text-right"><div class="skeleton-line skeleton-line--actions ml-auto"></div></td>
           </tr>
         </tbody>
         <tbody v-else>
-          <tr v-for="p in persons" :key="p._id">
+          <tr v-for="p in persons" :key="p._id" class="table-row">
             <td>
               <div class="person-info">
                 <div class="avatar-placeholder">{{ p.name.charAt(0).toUpperCase() }}</div>
                 <span class="person-name">{{ p.name }}</span>
               </div>
             </td>
-            <td>{{ p.email || '—' }}</td>
-            <td>{{ p.phone || '—' }}</td>
-            <td>{{ formatDate(p.createdAt) }}</td>
-            <td class="actions">
+            <td class="text-secondary">{{ p.email || '—' }}</td>
+            <td class="text-secondary">{{ p.phone || '—' }}</td>
+            <td><span class="date-pill">{{ formatDate(p.createdAt) }}</span></td>
+            <td class="actions text-right">
               <button class="action-btn" title="Editar" @click="openPersonEdit(p)">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
-              <button class="action-btn" title="Archivos" @click="openFiles(p)">
-                <i class="fa-solid fa-folder-open"></i>
+              <button class="action-btn action-btn--accent" title="Archivos Médicos" @click="openFiles(p)">
+                <i class="fa-solid fa-file-medical"></i>
               </button>
               <button class="action-btn action-btn--danger" title="Eliminar" @click="confirmDeletePerson(p)">
                 <i class="fa-solid fa-trash"></i>
@@ -148,7 +154,7 @@ onMounted(() => {
             </td>
           </tr>
           <tr v-if="!persons.length">
-            <td colspan="5" class="empty">
+            <td colspan="5">
               <div class="empty-state">
                 <i class="fa-solid fa-users-slash"></i>
                 <p>No hay pacientes registrados</p>
@@ -169,155 +175,247 @@ onMounted(() => {
     <ConfirmModal
       v-if="personConfirm"
       :open="personConfirm.open"
-      :message="`¿Eliminar a ${personConfirm.name}?`"
+      :message="`¿Eliminar al paciente ${personConfirm.name}?`"
       :variant="'danger'"
       @confirm="executePersonDelete"
       @cancel="personConfirm = null"
     />
 
-    <div v-if="personFiles?.open" class="modal-overlay" @click.self="personFiles = null">
-      <div class="modal files-modal">
-        <div class="modal__header">
-          <h3 class="modal__title">Archivos Médicos</h3>
-          <button class="modal__close" @click="personFiles = null">✕</button>
-        </div>
-        <div class="modal__body">
-          <FileUpload
-            :personId="personFiles.personId"
-            :files="personFiles.files"
-            @uploaded="onFileUploaded"
-            @deleted="onFileDeleted"
-          />
+    <transition name="modal-fade">
+      <div v-if="personFiles?.open" class="modal-overlay" @click.self="personFiles = null">
+        <div class="modal files-modal glass-card">
+          <div class="modal__header">
+            <h3 class="modal__title">
+              <i class="fa-solid fa-folder-open text-primary"></i> Archivos Médicos
+            </h3>
+            <button class="modal__close" @click="personFiles = null"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+          <div class="modal__body">
+            <FileUpload
+              :personId="personFiles.personId"
+              :files="personFiles.files"
+              @uploaded="onFileUploaded"
+              @deleted="onFileDeleted"
+            />
+          </div>
         </div>
       </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .admin-persons {
-  animation: fadeIn 0.3s ease;
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .tab-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
 
 .tab-title {
   font-family: var(--font-montserrat);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
   margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.tab-subtitle {
+  color: #a1a1aa;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.glass-card {
+  background: rgba(15, 15, 20, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .table-wrap {
   overflow-x: auto;
-  background: var(--surface);
-  border-radius: 12px;
-  border: 1px solid var(--border);
 }
 
-.table {
+.premium-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 8px;
   font-family: var(--font-montserrat);
 
   th {
     text-align: left;
-    padding: 1rem 1.25rem;
-    font-size: 0.75rem;
+    padding: 0 1.5rem 1rem 1.5rem;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-3);
-    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.1em;
+    color: #71717a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
+
+  .text-right {
+    text-align: right;
+  }
+}
+
+.table-row {
+  transition: all 0.2s ease;
 
   td {
-    padding: 1rem 1.25rem;
-    font-size: 0.875rem;
-    color: var(--text-2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 1.25rem 1.5rem;
+    background: rgba(255, 255, 255, 0.015);
+    vertical-align: middle;
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+
+    &:first-child { border-left: 1px solid rgba(255, 255, 255, 0.02); border-radius: 12px 0 0 12px; }
+    &:last-child { border-right: 1px solid rgba(255, 255, 255, 0.02); border-radius: 0 12px 12px 0; }
   }
 
-  tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
+  &:hover {
+    transform: scale(1.005);
+    td { background: rgba(255, 255, 255, 0.04); }
   }
+}
 
-  .empty {
-    text-align: center;
-    color: var(--text-3);
-    padding: 2rem;
-  }
+.text-secondary {
+  color: #a1a1aa;
+}
+
+.date-pill {
+  display: inline-flex;
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  color: #e4e4e7;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
 .action-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-2);
-  padding: 0.375rem 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #a1a1aa;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
 
-  &:hover { border-color: var(--primary); color: var(--primary); background: rgba(33, 188, 251, 0.05); }
-  &--danger:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+  &:hover {
+    border-color: #21BCFB;
+    color: #21BCFB;
+    background: rgba(33, 188, 251, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  &--accent:hover {
+    border-color: #10b981;
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+  }
+
+  &--danger:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
 }
 
 .btn-primary {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
-  color: #171846;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #21BCFB 0%, #1278F3 100%);
+  color: #ffffff;
   font-weight: 600;
+  font-family: inherit;
+  font-size: 0.95rem;
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33, 188, 251, 0.3); }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(18, 120, 243, 0.35);
+  }
 }
 
 .person-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .avatar-placeholder {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(16, 185, 129, 0.1);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.2) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.3);
   color: #10b981;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .person-name {
   font-weight: 600;
-  color: var(--text);
+  color: #ffffff;
+  font-size: 1rem;
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  padding: 4rem 0;
   
   i {
-    font-size: 2rem;
-    color: var(--text-3);
+    font-size: 3rem;
+    color: #52525b;
+  }
+  
+  p {
+    color: #a1a1aa;
+    font-size: 1.1rem;
+    margin: 0;
   }
 }
 
@@ -328,11 +426,12 @@ onMounted(() => {
   border-radius: 4px;
   animation: pulse 1.5s infinite ease-in-out;
   
-  &--short { width: 120px; }
-  &--medium { width: 150px; }
-  &--long { width: 200px; }
-  &--actions { width: 120px; height: 32px; border-radius: 6px; }
+  &--short { width: 100px; }
+  &--medium { width: 140px; }
+  &--long { width: 220px; }
+  &--actions { width: 120px; height: 36px; border-radius: 8px; }
 }
+.ml-auto { margin-left: auto; }
 
 @keyframes pulse {
   0% { opacity: 0.6; }
@@ -340,11 +439,13 @@ onMounted(() => {
   100% { opacity: 0.6; }
 }
 
+/* Modal Overlay */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -352,12 +453,10 @@ onMounted(() => {
 }
 
 .files-modal {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 2rem;
   width: 90%;
-  max-width: 560px;
+  max-width: 600px;
+  padding: 2.5rem;
+  margin: auto;
 }
 
 .modal {
@@ -365,21 +464,36 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
   }
   &__title {
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: var(--text);
+    color: #ffffff;
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
   }
   &__close {
-    background: none;
-    border: none;
-    color: var(--text-3);
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #a1a1aa;
     font-size: 1.2rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
     cursor: pointer;
-    &:hover { color: var(--text); }
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    
+    &:hover { 
+      color: #ffffff;
+      background: rgba(239, 68, 68, 0.2);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
   }
   &__body {
     display: flex;
@@ -387,9 +501,26 @@ onMounted(() => {
     gap: 1rem;
   }
 }
+.text-primary { color: #21BCFB; }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+  .files-modal { transition: transform 0.3s ease; }
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+  .files-modal { transform: scale(0.95); }
+}
+
+@media (max-width: 768px) {
+  .tab-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .btn-primary { width: 100%; justify-content: center; }
+  .files-modal { padding: 1.5rem; }
 }
 </style>

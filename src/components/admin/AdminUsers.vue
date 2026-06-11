@@ -64,21 +64,27 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="admin-users">
+  <div class="admin-users fade-in">
     <div class="tab-header">
-      <h2 class="tab-title">Usuarios del Sistema</h2>
-      <button class="btn btn-primary" @click="openUserCreate">+ Agregar usuario</button>
+      <div class="header-titles">
+        <h2 class="tab-title">Usuarios del Sistema</h2>
+        <p class="tab-subtitle">Administra los accesos y roles internos</p>
+      </div>
+      <button class="btn-primary" @click="openUserCreate">
+        <i class="fa-solid fa-plus"></i>
+        <span>Agregar usuario</span>
+      </button>
     </div>
 
-    <div class="table-wrap">
-      <table class="table">
+    <div class="table-wrap glass-card">
+      <table class="premium-table">
         <thead>
           <tr>
             <th>Nombre</th>
             <th>Email</th>
             <th>Rol</th>
-            <th>Interno</th>
-            <th>Acciones</th>
+            <th>Acceso</th>
+            <th class="text-right">Acciones</th>
           </tr>
         </thead>
         <tbody v-if="loading">
@@ -87,18 +93,18 @@ onMounted(() => {
             <td><div class="skeleton-line skeleton-line--long"></div></td>
             <td><div class="skeleton-line skeleton-line--badge"></div></td>
             <td><div class="skeleton-line skeleton-line--badge"></div></td>
-            <td><div class="skeleton-line skeleton-line--actions"></div></td>
+            <td class="text-right"><div class="skeleton-line skeleton-line--actions ml-auto"></div></td>
           </tr>
         </tbody>
         <tbody v-else>
-          <tr v-for="u in users" :key="u._id">
+          <tr v-for="u in users" :key="u._id" class="table-row">
             <td>
               <div class="user-info">
                 <div class="avatar-placeholder">{{ u.name.charAt(0).toUpperCase() }}</div>
                 <span class="user-name">{{ u.name }}</span>
               </div>
             </td>
-            <td>{{ u.email }}</td>
+            <td class="text-secondary">{{ u.email }}</td>
             <td><span class="badge" :class="u.role === 'admin' ? 'badge-admin' : 'badge-user'">{{ u.role }}</span></td>
             <td>
               <span v-if="u.isInternal" class="badge badge-internal">
@@ -106,7 +112,7 @@ onMounted(() => {
               </span>
               <span v-else class="badge badge-external">Ext.</span>
             </td>
-            <td class="actions">
+            <td class="actions text-right">
               <button class="action-btn" title="Editar" @click="openUserEdit(u)">
                 <i class="fa-solid fa-pen-to-square"></i>
               </button>
@@ -116,7 +122,7 @@ onMounted(() => {
             </td>
           </tr>
           <tr v-if="!users.length">
-            <td colspan="5" class="empty">
+            <td colspan="5">
               <div class="empty-state">
                 <i class="fa-solid fa-users-slash"></i>
                 <p>No hay usuarios registrados</p>
@@ -147,144 +153,217 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .admin-users {
-  animation: fadeIn 0.3s ease;
+  animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .tab-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+  align-items: flex-end;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+  .header-titles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
 }
 
 .tab-title {
   font-family: var(--font-montserrat);
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
+  font-size: 2rem;
+  font-weight: 800;
+  color: #ffffff;
   margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.tab-subtitle {
+  color: #a1a1aa;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.glass-card {
+  background: rgba(15, 15, 20, 0.5);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
 .table-wrap {
   overflow-x: auto;
-  background: var(--surface);
-  border-radius: 12px;
-  border: 1px solid var(--border);
 }
 
-.table {
+.premium-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 8px;
   font-family: var(--font-montserrat);
 
   th {
     text-align: left;
-    padding: 1rem 1.25rem;
-    font-size: 0.75rem;
+    padding: 0 1.5rem 1rem 1.5rem;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-3);
-    border-bottom: 1px solid var(--border);
+    letter-spacing: 0.1em;
+    color: #71717a;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   }
+
+  .text-right {
+    text-align: right;
+  }
+}
+
+.table-row {
+  transition: all 0.2s ease;
 
   td {
-    padding: 1rem 1.25rem;
-    font-size: 0.875rem;
-    color: var(--text-2);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    padding: 1.25rem 1.5rem;
+    background: rgba(255, 255, 255, 0.015);
+    vertical-align: middle;
+    border-top: 1px solid rgba(255, 255, 255, 0.02);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.02);
+
+    &:first-child { border-left: 1px solid rgba(255, 255, 255, 0.02); border-radius: 12px 0 0 12px; }
+    &:last-child { border-right: 1px solid rgba(255, 255, 255, 0.02); border-radius: 0 12px 12px 0; }
   }
 
-  tr:hover td {
-    background: rgba(255, 255, 255, 0.02);
+  &:hover {
+    transform: scale(1.005);
+    td { background: rgba(255, 255, 255, 0.04); }
   }
+}
 
-  .empty {
-    text-align: center;
-    color: var(--text-3);
-    padding: 2rem;
-  }
+.text-secondary {
+  color: #a1a1aa;
 }
 
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.25rem 0.75rem;
-  border-radius: 50px;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: 8px;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: capitalize;
+  letter-spacing: 0.05em;
 
-  &-admin { background: rgba(33, 188, 251, 0.15); color: var(--primary); }
-  &-user { background: rgba(255, 255, 255, 0.05); color: var(--text-3); }
-  &-internal { background: rgba(239, 68, 68, 0.12); color: #fca5a5; border: 1px solid rgba(239, 68, 68, 0.25); }
-  &-external { background: rgba(16, 185, 129, 0.1); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.2); }
+  &-admin { background: rgba(33, 188, 251, 0.15); color: #21BCFB; }
+  &-user { background: rgba(255, 255, 255, 0.05); color: #a1a1aa; }
+  &-internal { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+  &-external { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; }
 }
 
 .actions {
   display: flex;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  justify-content: flex-end;
 }
 
 .action-btn {
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  color: var(--text-2);
-  padding: 0.375rem 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #a1a1aa;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.2s ease;
 
-  &:hover { border-color: var(--primary); color: var(--primary); background: rgba(33, 188, 251, 0.05); }
-  &--danger:hover { border-color: #ef4444; color: #ef4444; background: rgba(239, 68, 68, 0.05); }
+  &:hover {
+    border-color: #21BCFB;
+    color: #21BCFB;
+    background: rgba(33, 188, 251, 0.1);
+    transform: translateY(-2px);
+  }
+  
+  &--danger:hover {
+    border-color: #ef4444;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+  }
 }
 
 .btn-primary {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--primary) 0%, var(--blue) 100%);
-  color: #171846;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.875rem 1.5rem;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #21BCFB 0%, #1278F3 100%);
+  color: #ffffff;
   font-weight: 600;
+  font-family: inherit;
+  font-size: 0.95rem;
   border: none;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
-  &:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(33, 188, 251, 0.3); }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(18, 120, 243, 0.35);
+  }
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .avatar-placeholder {
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: rgba(33, 188, 251, 0.1);
-  color: var(--primary);
+  background: linear-gradient(135deg, rgba(33, 188, 251, 0.2) 0%, rgba(18, 120, 243, 0.2) 100%);
+  border: 1px solid rgba(33, 188, 251, 0.3);
+  color: #21BCFB;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 1.1rem;
 }
 
 .user-name {
   font-weight: 600;
-  color: var(--text);
+  color: #ffffff;
+  font-size: 1rem;
 }
 
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 1rem;
+  padding: 4rem 0;
   
   i {
-    font-size: 2rem;
-    color: var(--text-3);
+    font-size: 3rem;
+    color: #52525b;
+  }
+  
+  p {
+    color: #a1a1aa;
+    font-size: 1.1rem;
+    margin: 0;
   }
 }
 
@@ -297,9 +376,10 @@ onMounted(() => {
   
   &--short { width: 120px; }
   &--long { width: 200px; }
-  &--badge { width: 60px; height: 24px; border-radius: 50px; }
-  &--actions { width: 80px; height: 32px; border-radius: 6px; }
+  &--badge { width: 80px; height: 28px; border-radius: 8px; }
+  &--actions { width: 80px; height: 36px; border-radius: 8px; }
 }
+.ml-auto { margin-left: auto; }
 
 @keyframes pulse {
   0% { opacity: 0.6; }
@@ -307,8 +387,12 @@ onMounted(() => {
   100% { opacity: 0.6; }
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(5px); }
-  to { opacity: 1; transform: translateY(0); }
+@media (max-width: 768px) {
+  .tab-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .btn-primary { width: 100%; justify-content: center; }
 }
 </style>

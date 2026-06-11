@@ -38,7 +38,7 @@ const routes: Array<RouteRecordRaw> = [
         path: 'metrics',
         name: 'AdminMetrics',
         component: () => import('../components/admin/AgentMetrics.vue'),
-        meta: { title: 'Agentes GHL' }
+        meta: { title: 'Agentes del CRM Bakano' }
       },
       {
         path: 'metrics/:id',
