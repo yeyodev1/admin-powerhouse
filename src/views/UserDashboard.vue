@@ -7,6 +7,7 @@ import { useUserStore } from '@/stores/user'
 import FileUpload from '@/components/admin/FileUpload.vue'
 import PrecisionAnalysis from '@/components/admin/PrecisionAnalysis.vue'
 import AnalysisHistory from '@/components/admin/AnalysisHistory.vue'
+import CreatePatientModal from '@/components/admin/CreatePatientModal.vue'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -22,11 +23,31 @@ let searchTimeout: any = null
 const filterType = ref('all')
 const loadingPersons = ref(false)
 const savingProfile = ref(false)
-const creatingPerson = ref(false)
 const uploadSuccess = ref(false)
 const error = ref('')
 
-const newPersonForm = ref({ name: '', email: '', phone: '', notes: '' })
+// ── Create Patient Modal State ──
+const createPatientModalOpen = ref(false)
+const createPatientInitialName = ref('')
+
+function openCreatePatientModal(initialName?: string) {
+  createPatientInitialName.value = initialName || searchQuery.value || ''
+  createPatientModalOpen.value = true
+}
+
+function handlePatientCreated(newPerson: any) {
+  // If already in list, replace, else unshift
+  const idx = persons.value.findIndex((p: any) => p._id === newPerson._id)
+  if (idx !== -1) {
+    persons.value[idx] = newPerson
+  } else {
+    persons.value.unshift(newPerson)
+  }
+  selectedPerson.value = newPerson
+  selectPerson(newPerson)
+  uploadSuccess.value = true
+  setTimeout(() => (uploadSuccess.value = false), 3500)
+}
 
 // ── CRM Modal State ──
 const crmModalOpen = ref(false)
@@ -142,28 +163,6 @@ async function selectPerson(person: any) {
   }
 }
 
-// ── Create person ────────────────────────────────────
-async function createPerson() {
-  if (!newPersonForm.value.name.trim()) return
-  creatingPerson.value = true
-  error.value = ''
-  try {
-    const created = await personService.createPerson({
-      name: newPersonForm.value.name.trim(),
-      email: newPersonForm.value.email.trim() || undefined,
-      phone: newPersonForm.value.phone.trim() || undefined,
-      notes: newPersonForm.value.notes.trim() || undefined,
-    })
-    persons.value.unshift(created)
-    newPersonForm.value = { name: '', email: '', phone: '', notes: '' }
-    selectPerson(created)
-  } catch (e: any) {
-    error.value = e?.message || 'Error al crear persona'
-  } finally {
-    creatingPerson.value = false
-  }
-}
-
 // ── Update profile ───────────────────────────────────
 const profileForm = ref({
   name: '',
@@ -245,12 +244,6 @@ async function handleFileDeleted(fileId: string) {
 }
 
 // ── Search Helpers ─────────────────────────────────
-function fillNewPersonFromSearch() {
-  if (searchQuery.value) {
-    newPersonForm.value.name = searchQuery.value.trim()
-  }
-}
-
 function clearSearch() {
   searchQuery.value = ''
   filterType.value = 'all'
@@ -397,41 +390,13 @@ onMounted(async () => {
             </div>
           </div>
 
-          <!-- New person form -->
-          <form @submit.prevent="createPerson" class="new-person-form">
-            <input
-              v-model="newPersonForm.name"
-              type="text"
-              placeholder="Nombre de la persona *"
-              class="form-input form-input--sm"
-              required
-            />
-            <div class="new-person-form__row">
-              <input
-                v-model="newPersonForm.email"
-                type="email"
-                placeholder="Email (opcional)"
-                class="form-input form-input--sm"
-              />
-              <input
-                v-model="newPersonForm.phone"
-                type="tel"
-                placeholder="Teléfono (opcional)"
-                class="form-input form-input--sm"
-              />
-            </div>
-            <textarea
-              v-model="newPersonForm.notes"
-              placeholder="Formulario CRM: Copia y pega aquí las respuestas que llenó el cliente (opcional)..."
-              class="form-textarea form-textarea--sm"
-              rows="2"
-            ></textarea>
-            <button type="submit" class="btn btn--primary btn--sm btn--full" :disabled="creatingPerson">
-              <span v-if="creatingPerson" class="spinner spinner--xs"></span>
-              <i v-else class="fa-solid fa-user-plus"></i>
-              Nueva persona
+          <!-- Create patient action button -->
+          <div class="create-person-action">
+            <button type="button" class="btn btn--primary btn--full" @click="openCreatePatientModal()">
+              <i class="fa-solid fa-user-plus"></i>
+              <span>Crear Nuevo Paciente</span>
             </button>
-          </form>
+          </div>
 
           <!-- Persons list -->
           <div class="persons-list">
@@ -447,7 +412,7 @@ onMounted(async () => {
                     No existe ningún paciente registrado con <strong>"{{ searchQuery }}"</strong> en nombre, correo o teléfono.
                   </p>
                   <div class="search-empty-actions">
-                    <button class="btn btn--sm btn--primary btn--full" @click="fillNewPersonFromSearch">
+                    <button class="btn btn--sm btn--primary btn--full" @click="openCreatePatientModal(searchQuery)">
                       <i class="fa-solid fa-user-plus"></i>
                       <span>Crear paciente "{{ searchQuery }}"</span>
                     </button>
@@ -462,7 +427,11 @@ onMounted(async () => {
                 <div class="search-empty-box">
                   <i class="fa-solid fa-users-slash search-empty-icon"></i>
                   <h4 class="search-empty-title">Sin pacientes en la lista</h4>
-                  <p class="search-empty-text">Usa el formulario superior para registrar a tu primer paciente.</p>
+                  <p class="search-empty-text">Haz clic en el botón superior para registrar a tu primer paciente.</p>
+                  <button class="btn btn--sm btn--primary btn--full" @click="openCreatePatientModal()">
+                    <i class="fa-solid fa-user-plus"></i>
+                    <span>Crear Nuevo Paciente</span>
+                  </button>
                 </div>
               </template>
             </div>
@@ -825,6 +794,14 @@ onMounted(async () => {
         </div>
       </Transition>
     </Teleport>
+
+    <!-- Create Patient Modal -->
+    <CreatePatientModal
+      :open="createPatientModalOpen"
+      :initial-name="createPatientInitialName"
+      @close="createPatientModalOpen = false"
+      @created="handlePatientCreated"
+    />
   </div>
 </template>
 
@@ -1158,19 +1135,17 @@ onMounted(async () => {
   }
 }
 
-// ── New Person Form ──
-.new-person-form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+// ── Create Person Action ──
+.create-person-action {
   padding: 0 0.75rem 0.75rem;
   border-bottom: 1px solid var(--border);
   margin-bottom: 0.5rem;
 
-  &__row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.5rem;
+  .btn {
+    padding: 0.65rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(33, 188, 251, 0.2);
   }
 }
 
