@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ghlService, type AgentMetric } from '@/services/ghl.service'
 import {
@@ -25,6 +25,31 @@ const agent = ref<AgentMetric | null>(null)
 const error = ref('')
 
 const currentDates = ref<{ startDate?: string, endDate?: string }>({})
+const selectedChat = ref<any | null>(null)
+const loadingChat = ref(false)
+const chatBodyRef = ref<HTMLElement | null>(null)
+
+const openChat = async (chat: any) => {
+  selectedChat.value = { ...chat, messages: [] }
+  loadingChat.value = true
+  try {
+    const msgs = await ghlService.getConversationMessages(chat.id)
+    selectedChat.value.messages = msgs
+    nextTick(() => {
+      if (chatBodyRef.value) {
+        chatBodyRef.value.scrollTop = chatBodyRef.value.scrollHeight
+      }
+    })
+  } catch (err) {
+    console.error('Error fetching chat messages:', err)
+  } finally {
+    loadingChat.value = false
+  }
+}
+
+const closeChat = () => {
+  selectedChat.value = null
+}
 
 async function fetchAgent(dates?: { startDate: string, endDate: string }) {
   if (dates) {
@@ -275,7 +300,7 @@ const chartOptions: any = {
         </div>
         
         <div class="chats-list">
-          <div v-for="chat in agent.recentChats" :key="chat.id" class="chat-card premium-hover">
+          <div v-for="chat in agent.recentChats" :key="chat.id" class="chat-card premium-hover clickable" @click="openChat(chat)">
             <div class="chat-avatar">
               <i class="fa-solid fa-user-circle"></i>
             </div>
@@ -345,6 +370,47 @@ const chartOptions: any = {
           <Bar :data="chartData" :options="chartOptions" />
         </div>
       </section>
+    </div>
+
+    <!-- Chat Modal -->
+    <div v-if="selectedChat" class="modal-overlay" @click.self="closeChat">
+      <div class="chat-modal glass-panel">
+        <div class="chat-modal-header">
+          <div class="chat-modal-info">
+            <h3>{{ selectedChat.name }}</h3>
+            <p><i class="fa-solid fa-phone"></i> {{ selectedChat.phone }}</p>
+          </div>
+          <button class="btn-close" @click="closeChat"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        
+        <div class="chat-modal-body" ref="chatBodyRef">
+          <div v-if="loadingChat" class="loading-chat">
+            <div class="loader-ring small"></div>
+            <p>Cargando hilo de chat...</p>
+          </div>
+          <div v-else-if="!selectedChat.messages || selectedChat.messages.length === 0" class="no-messages">
+            No hay historial de mensajes para mostrar.
+          </div>
+          <div class="chat-messages-container" v-else>
+            <div v-for="msg in selectedChat.messages" :key="msg.id" class="message-bubble" :class="msg.direction">
+              <div class="msg-content">
+                {{ msg.body }}
+              </div>
+              <div class="msg-meta">
+                <span class="msg-time">{{ new Date(msg.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }}</span>
+                <span class="msg-source" v-if="msg.direction === 'outbound'">
+                  <template v-if="msg.source === 'workflow' || msg.source === 'automation' || msg.source === 'campaign'">
+                    <i class="fa-solid fa-robot" title="Automático"></i>
+                  </template>
+                  <template v-else>
+                    <i class="fa-solid fa-user-pen" title="Manual"></i>
+                  </template>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -867,6 +933,10 @@ const chartOptions: any = {
   transition: all 0.3s ease;
   align-items: center;
 
+  &.clickable {
+    cursor: pointer;
+  }
+
   &.premium-hover:hover {
     transform: translateX(5px);
     background: rgba(255, 255, 255, 0.05);
@@ -1057,5 +1127,153 @@ const chartOptions: any = {
     align-items: flex-start;
     gap: 1rem;
   }
+}
+
+/* Chat Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.chat-modal {
+  width: 100%;
+  max-width: 600px;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  background: #0d1021;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+  animation: modalScale 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes modalScale {
+  from { opacity: 0; transform: scale(0.95) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.chat-modal-header {
+  padding: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.chat-modal-info h3 {
+  margin: 0 0 0.3rem 0;
+  color: #fff;
+  font-family: var(--font-montserrat);
+  font-size: 1.2rem;
+}
+
+.chat-modal-info p {
+  margin: 0;
+  color: #21bcfb;
+  font-size: 0.9rem;
+}
+
+.btn-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  
+  &:hover { color: #fff; }
+}
+
+.chat-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: url('https://w0.peakpx.com/wallpaper/508/172/HD-wallpaper-whatsapp-dark-background.jpg') center/cover;
+  display: flex;
+  flex-direction: column;
+}
+
+.no-messages {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  margin-top: 2rem;
+}
+
+.chat-messages-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.loading-chat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.6);
+  gap: 1rem;
+
+  .loader-ring.small {
+    width: 30px;
+    height: 30px;
+    border-width: 3px;
+  }
+}
+
+.message-bubble {
+  max-width: 80%;
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+
+  &.inbound {
+    align-self: flex-start;
+    background: #1f2c34; /* WhatsApp Dark Mode Received Bubble */
+    border-top-left-radius: 2px;
+    color: #fff;
+  }
+
+  &.outbound {
+    align-self: flex-end;
+    background: #005c4b; /* WhatsApp Dark Mode Sent Bubble */
+    border-top-right-radius: 2px;
+    color: #e9edef;
+  }
+}
+
+.msg-content {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.msg-meta {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.msg-source i {
+  font-size: 0.75rem;
+  &.fa-robot { color: #21bcfb; }
+  &.fa-user-pen { color: #c5a059; }
 }
 </style>

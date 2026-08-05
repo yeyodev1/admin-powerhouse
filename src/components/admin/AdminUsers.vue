@@ -141,9 +141,8 @@ onMounted(() => {
     />
 
     <ConfirmModal
-      v-if="userConfirm"
-      :open="userConfirm.open"
-      :message="`¿Eliminar al usuario ${userConfirm.name}?`"
+      :open="!!userConfirm"
+      :message="userConfirm ? `¿Eliminar al usuario ${userConfirm.name}?` : ''"
       :variant="'danger'"
       @confirm="executeUserDelete"
       @cancel="userConfirm = null"

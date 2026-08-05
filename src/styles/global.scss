@@ -9,15 +9,15 @@ body {
 }
 
 :root {
-  --bg: #283645;
-  --bg-alt: #1a1d52;
-  --surface: #1e2260;
-  --surface-2: #232770;
+  --bg: #070a1e;
+  --bg-alt: #0e1233;
+  --surface: #141842;
+  --surface-2: #1b2056;
   --text: #FFFFFF;
-  --text-2: rgba(255, 255, 255, 0.75);
-  --text-3: rgba(255, 255, 255, 0.50);
-  --border: rgba(33, 188, 251, 0.12);
-  --border-medium: rgba(33, 188, 251, 0.22);
+  --text-2: rgba(255, 255, 255, 0.85);
+  --text-3: rgba(255, 255, 255, 0.58);
+  --border: rgba(33, 188, 251, 0.18);
+  --border-medium: rgba(33, 188, 251, 0.30);
   --accent: #18e7f0;
   --primary: #21bcfb;
   --blue: #1278f3;
@@ -25,9 +25,9 @@ body {
   --cyan: #21bcfb;
   --teal: #18e7f0;
   --font-montserrat: 'Montserrat', sans-serif;
-  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.20);
-  --shadow-sm: 0 2px 14px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 6px 32px rgba(0, 0, 0, 0.35);
+  --shadow-xs: 0 1px 4px rgba(0, 0, 0, 0.30);
+  --shadow-sm: 0 2px 14px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 6px 32px rgba(0, 0, 0, 0.55);
 }
 
 * {

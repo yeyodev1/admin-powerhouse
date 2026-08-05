@@ -1,11 +1,14 @@
 <script setup lang="ts">
-defineProps<{
+withDefaults(defineProps<{
+  open?: boolean
   title?: string
   message: string
   confirmText?: string
   cancelText?: string
   variant?: 'danger' | 'default'
-}>()
+}>(), {
+  open: true
+})
 
 const emit = defineEmits<{
   confirm: []
@@ -14,40 +17,51 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <div class="confirm-overlay" @click.self="emit('cancel')">
-    <div class="confirm-modal">
-      <div class="confirm-modal__header">
-        <h3 class="confirm-modal__title">{{ title || 'Confirmar acción' }}</h3>
+  <Teleport to="body">
+    <Transition name="modal-fade" appear>
+      <div v-if="open" class="confirm-overlay" @click.self="emit('cancel')">
+        <div class="confirm-modal">
+          <div class="confirm-modal__header">
+            <h3 class="confirm-modal__title">{{ title || 'Confirmar acción' }}</h3>
+          </div>
+          <div class="confirm-modal__body">
+            <p class="confirm-modal__message">{{ message }}</p>
+          </div>
+          <div class="confirm-modal__actions">
+            <button class="btn btn-ghost" @click="emit('cancel')">
+              {{ cancelText || 'Cancelar' }}
+            </button>
+            <button
+              class="btn"
+              :class="variant === 'danger' ? 'btn-danger' : 'btn-primary'"
+              @click="emit('confirm')"
+            >
+              {{ confirmText || 'Confirmar' }}
+            </button>
+          </div>
+        </div>
       </div>
-      <div class="confirm-modal__body">
-        <p class="confirm-modal__message">{{ message }}</p>
-      </div>
-      <div class="confirm-modal__actions">
-        <button class="btn btn-ghost" @click="emit('cancel')">
-          {{ cancelText || 'Cancelar' }}
-        </button>
-        <button
-          class="btn"
-          :class="variant === 'danger' ? 'btn-danger' : 'btn-primary'"
-          @click="emit('confirm')"
-        >
-          {{ confirmText || 'Confirmar' }}
-        </button>
-      </div>
-    </div>
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>
 .confirm-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 1rem;
+  z-index: 99999;
+  overflow-y: auto;
 }
 
 .confirm-modal {
@@ -56,7 +70,11 @@ const emit = defineEmits<{
   border-radius: 16px;
   padding: 2rem;
   max-width: 420px;
-  width: 90%;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  margin: auto;
 
   &__header {
     margin-bottom: 1rem;
@@ -85,6 +103,26 @@ const emit = defineEmits<{
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
+  }
+}
+
+/* Modal Transitions */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), backdrop-filter 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .confirm-modal {
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+
+  .confirm-modal {
+    opacity: 0;
+    transform: scale(0.9) translateY(16px);
   }
 }
 

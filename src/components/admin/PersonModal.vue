@@ -47,67 +47,98 @@ function submit() {
 </script>
 
 <template>
-  <div v-if="open" class="modal-overlay" @click.self="emit('close')">
-    <div class="modal">
-      <div class="modal__header">
-        <h3 class="modal__title">{{ person ? 'Editar persona' : 'Nueva persona' }}</h3>
-        <button class="modal__close" @click="emit('close')">✕</button>
+  <Teleport to="body">
+    <Transition name="modal-fade" appear>
+      <div v-if="open" class="modal-overlay" @click.self="emit('close')">
+        <div class="modal">
+          <div class="modal__header">
+            <h3 class="modal__title">{{ person ? 'Editar persona' : 'Nueva persona' }}</h3>
+            <button class="modal__close" @click="emit('close')">✕</button>
+          </div>
+
+          <form class="modal__body" @submit.prevent="submit">
+            <div class="form-group">
+              <label class="form-label">Nombre completo *</label>
+              <input v-model="name" type="text" class="form-input" placeholder="Nombre completo" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Correo electrónico</label>
+              <input v-model="email" type="email" class="form-input" placeholder="correo@ejemplo.com" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Teléfono</label>
+              <input v-model="phone" type="tel" class="form-input" placeholder="+XX XXXXXXXXX" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Fecha de nacimiento</label>
+              <input v-model="dateOfBirth" type="date" class="form-input" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Dirección</label>
+              <input v-model="address" type="text" class="form-input" placeholder="Dirección" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Notas</label>
+              <textarea v-model="notes" class="form-input form-textarea" rows="3" placeholder="Notas médicas, antecedentes..." />
+            </div>
+
+            <div v-if="error" class="error-message">{{ error }}</div>
+
+            <div class="modal__actions">
+              <button type="button" class="btn btn-ghost" @click="emit('close')">Cancelar</button>
+              <button type="submit" class="btn btn-primary">
+                {{ person ? 'Guardar cambios' : 'Crear persona' }}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
-
-      <form class="modal__body" @submit.prevent="submit">
-        <div class="form-group">
-          <label class="form-label">Nombre completo *</label>
-          <input v-model="name" type="text" class="form-input" placeholder="Nombre completo" required />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Correo electrónico</label>
-          <input v-model="email" type="email" class="form-input" placeholder="correo@ejemplo.com" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Teléfono</label>
-          <input v-model="phone" type="tel" class="form-input" placeholder="+XX XXXXXXXXX" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Fecha de nacimiento</label>
-          <input v-model="dateOfBirth" type="date" class="form-input" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Dirección</label>
-          <input v-model="address" type="text" class="form-input" placeholder="Dirección" />
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Notas</label>
-          <textarea v-model="notes" class="form-input form-textarea" rows="3" placeholder="Notas médicas, antecedentes..." />
-        </div>
-
-        <div v-if="error" class="error-message">{{ error }}</div>
-
-        <div class="modal__actions">
-          <button type="button" class="btn btn-ghost" @click="emit('close')">Cancelar</button>
-          <button type="submit" class="btn btn-primary">
-            {{ person ? 'Guardar cambios' : 'Crear persona' }}
-          </button>
-        </div>
-      </form>
-    </div>
-  </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style lang="scss" scoped>
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 1rem;
+  z-index: 99999;
+  overflow-y: auto;
+}
+
+/* Modal Transitions */
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+
+  .modal {
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
+
+  .modal {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
 }
 
 .modal {
@@ -115,8 +146,12 @@ function submit() {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 2rem;
-  width: 90%;
+  width: 100%;
   max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  margin: auto;
 
   &__header {
     display: flex;

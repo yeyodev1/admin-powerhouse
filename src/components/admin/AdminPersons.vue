@@ -173,34 +173,35 @@ onMounted(() => {
     />
 
     <ConfirmModal
-      v-if="personConfirm"
-      :open="personConfirm.open"
-      :message="`¿Eliminar al paciente ${personConfirm.name}?`"
+      :open="!!personConfirm"
+      :message="personConfirm ? `¿Eliminar al paciente ${personConfirm.name}?` : ''"
       :variant="'danger'"
       @confirm="executePersonDelete"
       @cancel="personConfirm = null"
     />
 
-    <transition name="modal-fade">
-      <div v-if="personFiles?.open" class="modal-overlay" @click.self="personFiles = null">
-        <div class="modal files-modal glass-card">
-          <div class="modal__header">
-            <h3 class="modal__title">
-              <i class="fa-solid fa-folder-open text-primary"></i> Archivos Médicos
-            </h3>
-            <button class="modal__close" @click="personFiles = null"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <div class="modal__body">
-            <FileUpload
-              :personId="personFiles.personId"
-              :files="personFiles.files"
-              @uploaded="onFileUploaded"
-              @deleted="onFileDeleted"
-            />
+    <Teleport to="body">
+      <transition name="modal-fade" appear>
+        <div v-if="personFiles?.open" class="modal-overlay" @click.self="personFiles = null">
+          <div class="modal files-modal glass-card">
+            <div class="modal__header">
+              <h3 class="modal__title">
+                <i class="fa-solid fa-folder-open text-primary"></i> Archivos Médicos
+              </h3>
+              <button class="modal__close" @click="personFiles = null"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal__body">
+              <FileUpload
+                :personId="personFiles.personId"
+                :files="personFiles.files"
+                @uploaded="onFileUploaded"
+                @deleted="onFileDeleted"
+              />
+            </div>
           </div>
         </div>
-      </div>
-    </transition>
+      </transition>
+    </Teleport>
   </div>
 </template>
 
@@ -443,18 +444,26 @@ onMounted(() => {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.8);
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.78);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  padding: 1rem;
+  z-index: 99999;
+  overflow-y: auto;
 }
 
 .files-modal {
-  width: 90%;
+  width: 100%;
   max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
   padding: 2.5rem;
   margin: auto;
 }

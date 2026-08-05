@@ -17,8 +17,13 @@ export interface MedicalFile {
 }
 
 export class PersonService extends APIBase {
-  async getPersons() {
-    const response = await this.get<any[]>('/persons')
+  async getPersons(params?: { search?: string; filter?: string }) {
+    const query = new URLSearchParams()
+    if (params?.search) query.append('search', params.search)
+    if (params?.filter) query.append('filter', params.filter)
+    const queryString = query.toString() ? `?${query.toString()}` : ''
+
+    const response = await this.get<any[]>(`/persons${queryString}`)
     return response.data
   }
 

@@ -66,6 +66,16 @@ export const ghlService = {
   
   async getAgentById(id: string, startDate?: string, endDate?: string): Promise<AgentMetric | null> {
     const metrics = await this.getAgentMetrics(startDate, endDate, id);
-    return metrics.length > 0 ? metrics[0] : null;
+    return metrics.length > 0 ? (metrics[0] ?? null) : null;
+  },
+
+  async getConversationMessages(conversationId: string): Promise<any[]> {
+    const token = localStorage.getItem('access_token');
+    const response = await axios.get(`${API_URL}/ghl/conversations/${conversationId}/messages`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data.messages;
   }
 };

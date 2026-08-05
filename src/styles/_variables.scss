@@ -2,11 +2,11 @@
 // Based on Brand Guidelines: 60-30-10 rule
 
 // ── Page surfaces ─────────────────────────────────────────────────────────────
-$PHB-BG:         #283645;
-$PHB-NAVY-DARK:  #171846;
-$PHB-BG-ALT:     #1a1d52;
-$PHB-SURFACE:    #1e2260;
-$PHB-SURFACE-2:  #232770;
+$PHB-BG:         #070a1e;
+$PHB-NAVY-DARK:  #0a0e28;
+$PHB-BG-ALT:     #0e1233;
+$PHB-SURFACE:    #141842;
+$PHB-SURFACE-2:  #1b2056;
 
 // ── Brand colors ─────────────────────────────────────────────────────────────
 $PHB-BLUE:         #1278f3;
@@ -18,12 +18,12 @@ $PHB-PRIMARY:      $PHB-CYAN;
 
 // ── Text ──────────────────────────────────────────────────────────────────────
 $PHB-TEXT-1:  #FFFFFF;
-$PHB-TEXT-2:  rgba(255, 255, 255, 0.75);
-$PHB-TEXT-3:  rgba(255, 255, 255, 0.50);
+$PHB-TEXT-2:  rgba(255, 255, 255, 0.85);
+$PHB-TEXT-3:  rgba(255, 255, 255, 0.58);
 
 // ── Borders & shadows ─────────────────────────────────────────────────────────
-$PHB-BORDER:        rgba(33, 188, 251, 0.12);
-$PHB-BORDER-MEDIUM: rgba(33, 188, 251, 0.22);
+$PHB-BORDER:        rgba(33, 188, 251, 0.18);
+$PHB-BORDER-MEDIUM: rgba(33, 188, 251, 0.30);
 $PHB-SHADOW-XS: 0 1px 4px rgba(0, 0, 0, 0.20);
 $PHB-SHADOW-SM: 0 2px 14px rgba(0, 0, 0, 0.25);
 $PHB-SHADOW-MD: 0 6px 32px rgba(0, 0, 0, 0.35);
