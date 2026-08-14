@@ -110,6 +110,12 @@ export function useAiAnalysis() {
         ? new Date(person.dateOfBirth).toLocaleDateString('es-ES')
         : 'No especificada'
 
+      // Los archivos son opcionales: la instrucción final cambia según haya o no
+      const closingInstruction =
+        fileContents.length > 0
+          ? 'Analiza estos datos clínicos y los documentos adjuntos.'
+          : 'No se adjuntaron documentos clínicos: realiza el análisis únicamente con los datos y notas del perfil, dejando explícito qué estudios de laboratorio harían falta para confirmar cada hipótesis.'
+
       const userContextPrompt = `Datos del Paciente:
 - Nombre completo: ${person.name}
 - Email: ${person.email || 'No proporcionado'}
@@ -117,7 +123,7 @@ export function useAiAnalysis() {
 - Fecha de nacimiento: ${birthDateText}
 - Notas del perfil: ${person.notes || 'Sin notas adicionales'}
 
-Analiza estos datos clínicos y los documentos adjuntos.`
+${closingInstruction}`
 
       loadingStatus.value = 'Llamando al servidor para el Análisis Clínico Maestro (OpenAI)...'
 

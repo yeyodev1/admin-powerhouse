@@ -76,10 +76,8 @@ function toggleFileSelection(file: any) {
 }
 
 async function startOpenAiStep() {
-  if (selectedFiles.value.length === 0) {
-    emit('error', 'Selecciona al menos un archivo para iniciar el análisis.')
-    return
-  }
+  // Los archivos son opcionales: sin adjuntos el análisis corre solo con los
+  // datos y notas del perfil del paciente.
   await runOpenAiAnalysis(props.person, selectedFiles.value)
   if (aiError.value) {
     emit('error', aiError.value)
@@ -260,8 +258,8 @@ function compileTable(rows: string[]): string {
     <div v-else-if="currentStep === 1" class="step-container card-glass animate-slide-up" style="padding: 1.5rem;">
       <div class="step-header">
         <div class="step-badge">Paso 1</div>
-        <h3 class="step-title" style="margin-top: 0.25rem;">Selección de Estudios Clínicos</h3>
-        <p class="step-description">Selecciona los laboratorios, imágenes o expedientes médicos del paciente que deseas que OpenAI analice en profundidad.</p>
+        <h3 class="step-title" style="margin-top: 0.25rem;">Selección de Estudios Clínicos (opcional)</h3>
+        <p class="step-description">Selecciona los laboratorios, imágenes o expedientes que quieras incluir. Si no adjuntas ninguno, el análisis se hace con los datos y notas del perfil del paciente.</p>
       </div>
 
       <div v-if="hasFiles" class="files-checklist" style="margin-top: 1rem;">
@@ -286,7 +284,7 @@ function compileTable(rows: string[]): string {
       <div v-else class="files-checklist-empty" style="border: none; background: transparent; padding: 2rem 0; display: flex; flex-direction: column; align-items: center;">
         <i class="fa-regular fa-folder-open" style="font-size: 2.5rem; color: rgba(33, 188, 251, 0.15); margin-bottom: 0.5rem;"></i>
         <p style="font-weight: 600; color: var(--text-2); margin-bottom: 0.25rem;">No hay archivos médicos cargados para esta persona.</p>
-        <p class="files-checklist-empty__hint" style="max-width: 320px; font-size: 0.75rem; color: var(--text-3); text-align: center; margin-bottom: 1rem;">Primero sube resultados de laboratorios, recetas u otros documentos en la Ficha Médica.</p>
+        <p class="files-checklist-empty__hint" style="max-width: 320px; font-size: 0.75rem; color: var(--text-3); text-align: center; margin-bottom: 1rem;">Puedes iniciar el análisis igual con los datos del perfil, o subir laboratorios primero para un resultado más completo.</p>
         <button class="btn btn--outline btn--sm" @click="emit('goToProfile')">
           <i class="fa-solid fa-file-medical"></i>
           Subir Archivos
@@ -294,13 +292,11 @@ function compileTable(rows: string[]): string {
       </div>
 
       <div class="step-actions" style="margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
-        <button
-          class="btn btn--primary"
-          :disabled="selectedFiles.length === 0"
-          @click="startOpenAiStep"
-        >
+        <!-- Sin :disabled — los archivos son opcionales -->
+        <button class="btn btn--primary" @click="startOpenAiStep">
           <i class="fa-solid fa-wand-magic-sparkles"></i>
           Iniciar Análisis con OpenAI
+          <span v-if="selectedFiles.length === 0" style="font-weight: 400; opacity: 0.8;">(sin archivos)</span>
         </button>
       </div>
     </div>
