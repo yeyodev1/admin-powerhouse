@@ -1,11 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
 const userStore = useUserStore()
 const isMenuOpen = ref(false)
+
+/** Admins y asesores entran al panel; solo el admin gestiona usuarios */
+const STAFF_ROLES = ['admin', 'advisor']
+const role = ref('')
+const isAdmin = computed(() => role.value === 'admin')
 
 function logout() {
   localStorage.removeItem('access_token')
@@ -28,7 +33,8 @@ onMounted(() => {
   const token = localStorage.getItem('access_token')
   if (!token) { router.push('/login'); return }
   const payload = decodeToken(token)
-  if (!payload || payload.accountType !== 'admin') { router.push('/'); return }
+  if (!payload || !STAFF_ROLES.includes(payload.accountType)) { router.push('/'); return }
+  role.value = payload.accountType
   userStore.setUser({
     id: payload.userId,
     name: payload.email,
@@ -57,7 +63,10 @@ onMounted(() => {
 
       <div class="admin-nav__menu" :class="{ 'admin-nav__menu--open': isMenuOpen }">
         <div class="admin-nav__tabs">
-          <router-link to="/admin/users" class="tab" active-class="tab--active" @click="isMenuOpen = false">
+          <router-link to="/admin/studies" class="tab" active-class="tab--active" @click="isMenuOpen = false">
+            <i class="fa-solid fa-file-waveform"></i> Estudios
+          </router-link>
+          <router-link v-if="isAdmin" to="/admin/users" class="tab" active-class="tab--active" @click="isMenuOpen = false">
             <i class="fa-solid fa-users-gear"></i> Usuarios
           </router-link>
           <router-link to="/admin/persons" class="tab" active-class="tab--active" @click="isMenuOpen = false">

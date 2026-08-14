@@ -16,17 +16,25 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/admin',
     component: () => import('../views/AdminView.vue'),
-    meta: { title: 'Admin', requiresAuth: true, role: 'admin' },
+    // `roles` (plural): el módulo de estudios lo comparten administradores y
+    // asesores. Las secciones exclusivas de admin lo declaran en su propia meta.
+    meta: { title: 'Admin', requiresAuth: true, roles: ['admin', 'advisor'] },
     children: [
       {
         path: '',
-        redirect: '/admin/users'
+        redirect: '/admin/studies'
+      },
+      {
+        path: 'studies',
+        name: 'AdminStudies',
+        component: () => import('../components/admin/AdminStudies.vue'),
+        meta: { title: 'Estudios' }
       },
       {
         path: 'users',
         name: 'AdminUsers',
         component: () => import('../components/admin/AdminUsers.vue'),
-        meta: { title: 'Usuarios' }
+        meta: { title: 'Usuarios', roles: ['admin'] }
       },
       {
         path: 'persons',
@@ -70,25 +78,34 @@ const router = createRouter({
   },
 })
 
+/** Admins y asesores comparten el panel; el resto va a su dashboard */
+const STAFF_ROLES = ['admin', 'advisor']
+
+function homeFor(role: string | null) {
+  return role && STAFF_ROLES.includes(role) ? '/admin' : '/user'
+}
+
 router.beforeEach((to, _from, next) => {
   const hasToken = !!localStorage.getItem('access_token')
+  const userRole = localStorage.getItem('user_role')
   const requiresAuth = to.matched.some((record) => record.meta?.requiresAuth)
-  const requiredRole = to.matched.find((record) => record.meta?.role)?.meta?.role as string | undefined
+
+  // La coincidencia más profunda manda: un hijo puede restringir más que el padre
+  const matchedRoles = to.matched
+    .filter((record) => record.meta?.roles)
+    .map((record) => record.meta.roles as string[])
+  const requiredRoles = matchedRoles.length ? matchedRoles[matchedRoles.length - 1] : null
 
   if (requiresAuth && !hasToken) {
     return next({ path: '/login', replace: true })
   }
 
-  if (requiredRole) {
-    const userRole = localStorage.getItem('user_role')
-    if (userRole !== requiredRole) {
-      return next({ path: userRole === 'admin' ? '/admin' : '/user', replace: true })
-    }
+  if (requiredRoles && (!userRole || !requiredRoles.includes(userRole))) {
+    return next({ path: homeFor(userRole), replace: true })
   }
 
   if (to.path === '/login' && hasToken) {
-    const role = localStorage.getItem('user_role')
-    return next({ path: role === 'admin' ? '/admin' : '/user', replace: true })
+    return next({ path: homeFor(userRole), replace: true })
   }
 
   next()
